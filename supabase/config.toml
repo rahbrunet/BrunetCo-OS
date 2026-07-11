@@ -1,0 +1,21 @@
+# Supabase local stack config (WP 0.7). `npx supabase start` reads this.
+project_id = "brunetco-os"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "app", "ops"]
+extra_search_path = ["public", "app", "ops"]
+
+[db]
+port = 54322
+major_version = 16
+
+[auth]
+enabled = true
+# Entra ID is the real IdP (D44); local auth is only for stack bootstrapping.
+site_url = "http://127.0.0.1:5173"
+
+[studio]
+enabled = true
+port = 54323

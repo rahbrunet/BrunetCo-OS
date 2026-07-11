@@ -1,0 +1,23 @@
+{
+  "name": "brunetco-os",
+  "private": true,
+  "version": "0.7.0",
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @brunetco/web dev",
+    "build:web": "pnpm --filter @brunetco/web build",
+    "test:web": "pnpm -r test -- --run",
+    "lint": "pnpm -r lint",
+    "gen-contracts": "pnpm --filter @brunetco/contracts generate"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "eslint": "^9.13.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.11.0"
+  }
+}

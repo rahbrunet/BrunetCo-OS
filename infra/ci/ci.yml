@@ -1,0 +1,80 @@
+name: ci
+
+# WP 0.7 scaffold CI. All jobs must be green on the scaffold PR.
+# Copy/symlink to .github/workflows/ci.yml (kept here so infra/ owns CI definitions).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["54322:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SUPABASE_DB_URL: postgresql://postgres:postgres@localhost:54322/postgres
+      SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      AUTH_DEV_MODE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+      - name: Install workspace
+        run: uv sync --all-packages
+      - name: Apply migrations (fresh Postgres — migration dry-run)
+        run: |
+          for f in supabase/migrations/*.sql; do
+            echo "applying $f"
+            PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -v ON_ERROR_STOP=1 -f "$f"
+          done
+      - name: Lint (ruff)
+        run: uv run ruff check .
+      - name: Typecheck (mypy)
+        run: uv run mypy apps/api/app apps/workers/worker_app packages/py-shared/py_shared
+      - name: Tests (pytest incl. D44 RLS proof against Postgres directly)
+        run: uv run pytest -q
+
+  contracts-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          python-version: "3.12"
+      - run: uv sync --all-packages
+      - name: Regenerate OpenAPI and fail on drift
+        run: |
+          uv run python scripts/export_openapi.py
+          git diff --exit-code -- packages/contracts/openapi.json \
+            || (echo "::error::OpenAPI schema drifted — run 'python make.py gen-contracts' and commit" && exit 1)
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Enable pnpm
+        run: corepack enable pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate contracts types (needs the committed openapi.json)
+        run: pnpm --filter @brunetco/contracts generate
+      - name: Lint (eslint)
+        run: pnpm -r lint
+      - name: Typecheck (tsc)
+        run: pnpm --filter @brunetco/web exec tsc --noEmit
+      - name: Test (vitest)
+        run: pnpm -r test -- --run
+      - name: Build
+        run: pnpm --filter @brunetco/web build
