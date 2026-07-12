@@ -3,11 +3,13 @@
 Custom IP practice-management platform for a Canadian/US patent & trademark agency
 (~10 users, scaling to ~30), replacing AppColl.
 
-**This repository is the WP 0.7 scaffold** — repository skeleton only. No domain models
-(WP 0.8) and no feature code. Everything here runs and CI is green.
+**Build status: WP 0.7 scaffold + WP 0.8 domain layer.** Repository skeleton plus the core
+domain schema, D43 permission framework, and `FamilyRecordStore`. Everything runs and CI is green.
 
-Source of truth for scope: `IP-OS Spec v0.17` + `Tracker v18` (SharePoint design docs).
-Architecture rulings are recorded in [`DECISIONS.md`](DECISIONS.md).
+Source of truth for scope: `IP-OS Spec v0.17` + `Tracker v18`. The full design & specification
+set lives under [`Detailed Design/`](Detailed%20Design/00-README-START-HERE.md) and
+[`Design Summary/`](Design%20Summary/). Architecture rulings are recorded in
+[`DECISIONS.md`](DECISIONS.md).
 
 ---
 
