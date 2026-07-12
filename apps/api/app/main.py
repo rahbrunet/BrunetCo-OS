@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.mcp_server import build_mcp_app, mcp_session_lifespan
+from app.routes.docketing import router as docketing_router
 from app.routes.families import router as families_router
 from app.routes.matters import router as matters_router
 from app.routes.permissions_admin import me_router
@@ -62,6 +63,7 @@ app.include_router(me_router)
 app.include_router(permissions_router)
 app.include_router(families_router)
 app.include_router(matters_router)
+app.include_router(docketing_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
 # Auth is a documented TODO tied to the D44 JWT bridge — see mcp_server.py.
