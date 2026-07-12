@@ -88,3 +88,5 @@ terms before locking a US region — see `infra/data-residency.md`.
 | Date | Decision | Rationale |
 |---|---|---|
 | 2026-07-11 | Scaffold created at `C:\Users\robja\brunetco-os`; personal brunet-os = reference only | Owner (James) ruling |
+| 2026-07-12 | **WP 1.1** — TM/Design tag is **display-only**, not stored in `families.reference`. `family_display_reference()` appends `(TM)`/`Design`; the stored reference stays `{Client}-{Seq}` (already unique). | Keeps the identity key free of matter-type-ish data (Appendix A / M1-R1); the tag is presentation, like the legacy folder annotations D36 moved into the DB. |
+| 2026-07-12 | **WP 1.1** — CRUD create routes insert with an explicit id and **no `RETURNING`**, then read the row back in the same tx. | `insert … returning` also enforces the SELECT policy, and `can_see_family`/`can_see_matter` (SECURITY DEFINER re-query) can't see the in-flight row mid-INSERT → RLS would reject the write. Follow-up SELECT sees it. No schema/policy change; RLS stays the sole control (D44). |

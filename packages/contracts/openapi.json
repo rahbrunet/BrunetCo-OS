@@ -148,6 +148,124 @@
         "title": "CountryRecord",
         "type": "object"
       },
+      "FamilyCreate": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "family_seq": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Seq"
+          },
+          "family_type": {
+            "enum": [
+              "patent",
+              "trademark",
+              "design",
+              "advisory"
+            ],
+            "title": "Family Type",
+            "type": "string"
+          },
+          "restricted": {
+            "default": false,
+            "title": "Restricted",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "tm_design": {
+            "default": false,
+            "title": "Tm Design",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "client_id",
+          "title",
+          "family_type"
+        ],
+        "title": "FamilyCreate",
+        "type": "object"
+      },
+      "FamilyOut": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_reference": {
+            "title": "Display Reference",
+            "type": "string"
+          },
+          "family_seq": {
+            "title": "Family Seq",
+            "type": "string"
+          },
+          "family_type": {
+            "enum": [
+              "patent",
+              "trademark",
+              "design",
+              "advisory"
+            ],
+            "title": "Family Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "restricted": {
+            "title": "Restricted",
+            "type": "boolean"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "tm_design": {
+            "title": "Tm Design",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "client_id",
+          "family_seq",
+          "reference",
+          "display_reference",
+          "title",
+          "family_type",
+          "tm_design",
+          "restricted",
+          "created_at"
+        ],
+        "title": "FamilyOut",
+        "type": "object"
+      },
       "FamilyRecord": {
         "description": "The canonical, versioned Family Record.",
         "properties": {
@@ -232,6 +350,62 @@
         "title": "FamilyRecordExport",
         "type": "object"
       },
+      "FamilyUpdate": {
+        "properties": {
+          "family_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "patent",
+                  "trademark",
+                  "design",
+                  "advisory"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Type"
+          },
+          "restricted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restricted"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "tm_design": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tm Design"
+          }
+        },
+        "title": "FamilyUpdate",
+        "type": "object"
+      },
       "GrantRequest": {
         "properties": {
           "domain": {
@@ -286,6 +460,485 @@
           "version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "MatterCreate": {
+        "properties": {
+          "application_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application No"
+          },
+          "family_id": {
+            "format": "uuid",
+            "title": "Family Id",
+            "type": "string"
+          },
+          "filing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filing Date"
+          },
+          "jurisdiction_code": {
+            "title": "Jurisdiction Code",
+            "type": "string"
+          },
+          "parent_matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Matter Id"
+          },
+          "registration_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Date"
+          },
+          "registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration No"
+          },
+          "relationship_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "continuation",
+                  "cip",
+                  "divisional",
+                  "pct_national_phase",
+                  "madrid_designation",
+                  "tm_extension",
+                  "external_priority",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Type"
+          },
+          "responsible_associate_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible Associate Id"
+          },
+          "responsible_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible User Id"
+          },
+          "segment_base": {
+            "title": "Segment Base",
+            "type": "string"
+          },
+          "small_entity": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Small Entity"
+          },
+          "status": {
+            "default": "pending",
+            "enum": [
+              "pending",
+              "filed",
+              "published",
+              "allowed",
+              "issued",
+              "registered",
+              "abandoned",
+              "client_abandoned",
+              "expired",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family_id",
+          "jurisdiction_code",
+          "segment_base"
+        ],
+        "title": "MatterCreate",
+        "type": "object"
+      },
+      "MatterOut": {
+        "properties": {
+          "application_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application No"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "family_id": {
+            "format": "uuid",
+            "title": "Family Id",
+            "type": "string"
+          },
+          "filing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filing Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jurisdiction_code": {
+            "title": "Jurisdiction Code",
+            "type": "string"
+          },
+          "jurisdiction_segment": {
+            "title": "Jurisdiction Segment",
+            "type": "string"
+          },
+          "parent_matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Matter Id"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "registration_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Date"
+          },
+          "registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration No"
+          },
+          "relationship_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "continuation",
+                  "cip",
+                  "divisional",
+                  "pct_national_phase",
+                  "madrid_designation",
+                  "tm_extension",
+                  "external_priority",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Type"
+          },
+          "responsible_associate_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible Associate Id"
+          },
+          "responsible_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible User Id"
+          },
+          "small_entity": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Small Entity"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "filed",
+              "published",
+              "allowed",
+              "issued",
+              "registered",
+              "abandoned",
+              "client_abandoned",
+              "expired",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "family_id",
+          "reference",
+          "jurisdiction_code",
+          "jurisdiction_segment",
+          "parent_matter_id",
+          "relationship_type",
+          "status",
+          "application_no",
+          "registration_no",
+          "filing_date",
+          "registration_date",
+          "small_entity",
+          "responsible_user_id",
+          "responsible_associate_id",
+          "created_at"
+        ],
+        "title": "MatterOut",
+        "type": "object"
+      },
+      "MatterUpdate": {
+        "properties": {
+          "application_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application No"
+          },
+          "filing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filing Date"
+          },
+          "parent_matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Matter Id"
+          },
+          "registration_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Date"
+          },
+          "registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration No"
+          },
+          "relationship_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "continuation",
+                  "cip",
+                  "divisional",
+                  "pct_national_phase",
+                  "madrid_designation",
+                  "tm_extension",
+                  "external_priority",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Type"
+          },
+          "responsible_associate_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible Associate Id"
+          },
+          "responsible_user_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible User Id"
+          },
+          "small_entity": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Small Entity"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pending",
+                  "filed",
+                  "published",
+                  "allowed",
+                  "issued",
+                  "registered",
+                  "abandoned",
+                  "client_abandoned",
+                  "expired",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "MatterUpdate",
         "type": "object"
       },
       "MeResponse": {
@@ -583,6 +1236,141 @@
         ]
       }
     },
+    "/api/v1/families": {
+      "post": {
+        "operationId": "create_family_api_v1_families_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Family",
+        "tags": [
+          "families"
+        ]
+      }
+    },
+    "/api/v1/families/{family_id}": {
+      "get": {
+        "operationId": "get_family_api_v1_families__family_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "family_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Family Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Family",
+        "tags": [
+          "families"
+        ]
+      },
+      "patch": {
+        "operationId": "update_family_api_v1_families__family_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "family_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Family Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FamilyUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Family",
+        "tags": [
+          "families"
+        ]
+      }
+    },
     "/api/v1/families/{family_id}/export": {
       "get": {
         "operationId": "get_family_export_api_v1_families__family_id__export_get",
@@ -687,6 +1475,141 @@
         "summary": "Health",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/matters": {
+      "post": {
+        "operationId": "create_matter_api_v1_matters_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatterCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatterOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Matter",
+        "tags": [
+          "matters"
+        ]
+      }
+    },
+    "/api/v1/matters/{matter_id}": {
+      "get": {
+        "operationId": "get_matter_api_v1_matters__matter_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "matter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Matter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatterOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Matter",
+        "tags": [
+          "matters"
+        ]
+      },
+      "patch": {
+        "operationId": "update_matter_api_v1_matters__matter_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "matter_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Matter Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatterUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatterOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Matter",
+        "tags": [
+          "matters"
         ]
       }
     },
