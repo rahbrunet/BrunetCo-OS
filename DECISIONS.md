@@ -33,6 +33,7 @@ added here in the same PR that introduces it.
 | Use | Where | Justification |
 |---|---|---|
 | DB migrations | `supabase/` CLI | Schema changes run as owner |
+| Daily docket digest read (WP 1.4) | `apps/workers/worker_app/digest.py` | System worker composes per-user digests across all users' tasks — not a user request path; output queues as `email.send` events |
 | _(none yet on request paths)_ | — | User paths use JWT pass-through only |
 
 ## Tooling choices (team-vetoable)

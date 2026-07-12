@@ -3,9 +3,11 @@
 Custom IP practice-management platform for a Canadian/US patent & trademark agency
 (~10 users, scaling to ~30), replacing AppColl.
 
-**Build status: Phase 1 (Docketing Core) in progress.** WP 0.7 scaffold, WP 0.8 domain layer,
-WP 1.1 Family/Matter CRUD + Appendix A reference generation, and WP 1.2 deadline engine
-(holiday calendars, golden tests, M1-R14 provenance log) are done. Everything runs and CI is green.
+**Build status: Phase 1 (Docketing Core) in progress.** Done: WP 0.7 scaffold, WP 0.8 domain
+layer, WP 1.1 Family/Matter CRUD + Appendix A reference generation, WP 1.2 deadline engine
+(holiday calendars, golden tests, M1-R14 provenance log), WP 1.4 docket views + daily docket
+digest, WP 1.5 audit trail. WP 1.3/1.6 (AppColl rule import / data migration) are gated on the
+AppColl export CSVs. Everything runs and CI is green.
 
 Source of truth for scope: `IP-OS Spec v0.17` + `Tracker v18`. The full design & specification
 set lives under [`Detailed Design/`](Detailed%20Design/00-README-START-HERE.md) and

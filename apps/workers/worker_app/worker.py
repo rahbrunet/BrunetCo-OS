@@ -17,6 +17,8 @@ from typing import Any
 import psycopg
 from py_shared.config import settings
 
+from worker_app.digest import handle_daily_digest, handle_email_send
+
 Handler = Callable[[dict[str, Any]], None]
 
 
@@ -26,6 +28,8 @@ def _handle_demo_ping(payload: dict[str, Any]) -> None:
 
 HANDLERS: dict[str, Handler] = {
     "demo.ping": _handle_demo_ping,
+    "docket.daily_digest": handle_daily_digest,  # M1-R5 daily docket email (WP 1.4)
+    "email.send": handle_email_send,             # transport stub until the Graph adapter
 }
 
 

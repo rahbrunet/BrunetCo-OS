@@ -54,6 +54,33 @@ class CompleteResponse(BaseModel):
     chained: list[GeneratedTaskOut]
 
 
+TaskStatus = Literal["open", "completed", "received", "not_needed", "missed"]
+DeadlineType = Literal[
+    "hard_external", "extendable_external", "internal", "general_reminder", "event",
+    "transient_event",
+]
+
+
+class DocketTaskOut(BaseModel):
+    """A docket-view row: the task plus the matter/family context views need (M1-R5)."""
+
+    id: UUID
+    matter_id: UUID
+    matter_reference: str
+    family_id: UUID
+    title: str
+    deadline_type: DeadlineType
+    status: TaskStatus
+    ref_date: date | None
+    respond_by: date | None
+    final_due_date: date | None
+    closed_on: date | None
+    assignee_id: UUID | None
+    rule_id: UUID | None
+    rule_version: int | None
+    created_at: datetime
+
+
 class ProvenanceOut(BaseModel):
     id: UUID
     task_id: UUID
@@ -98,6 +125,59 @@ def complete(task_id: UUID, body: CompleteRequest, identity: Identity) -> Comple
     if not found:
         raise HTTPException(status_code=404, detail="Open task not found")
     return CompleteResponse(status="completed", chained=_out(chained))
+
+
+@router.get("/tasks", response_model=list[DocketTaskOut])
+def docket_tasks(
+    identity: Identity,
+    matter_id: UUID | None = None,
+    family_id: UUID | None = None,
+    assignee_id: UUID | None = None,
+    status: TaskStatus | None = "open",
+    due_from: date | None = None,
+    due_to: date | None = None,
+    overdue: bool = False,
+) -> list[DocketTaskOut]:
+    """Docket views (M1-R5): the open docket, filterable by matter/family/assignee/date window.
+
+    ``status`` defaults to open (pass explicitly for closed history); ``overdue=true`` restricts
+    to tasks whose earliest live date (respond_by, else final_due_date) is already past.
+    RLS scopes rows to matters the caller can see — restricted families simply don't appear.
+    """
+    with identity.connection() as conn:
+        rows = conn.execute(
+            """
+            select t.id, t.matter_id, m.reference, m.family_id, t.title,
+                   t.deadline_type::text, t.status::text, t.ref_date, t.respond_by,
+                   t.final_due_date, t.closed_on, t.assignee_id, t.rule_id, t.rule_version,
+                   t.created_at
+              from app.tasks t join app.matters m on m.id = t.matter_id
+             where (%(matter_id)s::uuid is null or t.matter_id = %(matter_id)s)
+               and (%(family_id)s::uuid is null or m.family_id = %(family_id)s)
+               and (%(assignee_id)s::uuid is null or t.assignee_id = %(assignee_id)s)
+               and (%(status)s::app.task_status is null
+                    or t.status = %(status)s::app.task_status)
+               and (%(due_from)s::date is null
+                    or coalesce(t.respond_by, t.final_due_date) >= %(due_from)s)
+               and (%(due_to)s::date is null
+                    or coalesce(t.respond_by, t.final_due_date) <= %(due_to)s)
+               and (not %(overdue)s
+                    or coalesce(t.respond_by, t.final_due_date) < current_date)
+             order by coalesce(t.respond_by, t.final_due_date) nulls last, t.created_at
+             limit 1000
+            """,
+            {"matter_id": matter_id, "family_id": family_id, "assignee_id": assignee_id,
+             "status": status, "due_from": due_from, "due_to": due_to, "overdue": overdue},
+        ).fetchall()
+    return [
+        DocketTaskOut(
+            id=r[0], matter_id=r[1], matter_reference=r[2], family_id=r[3], title=r[4],
+            deadline_type=r[5], status=r[6], ref_date=r[7], respond_by=r[8],
+            final_due_date=r[9], closed_on=r[10], assignee_id=r[11], rule_id=r[12],
+            rule_version=r[13], created_at=r[14],
+        )
+        for r in rows
+    ]
 
 
 _PROVENANCE_SQL = """
