@@ -20,6 +20,114 @@
         "title": "ApplyTemplateRequest",
         "type": "object"
       },
+      "AuditEntry": {
+        "properties": {
+          "action": {
+            "enum": [
+              "insert",
+              "update",
+              "delete"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "changed_at": {
+            "format": "date-time",
+            "title": "Changed At",
+            "type": "string"
+          },
+          "changed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "changed_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed Fields"
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "new_row": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Row"
+          },
+          "old_row": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Old Row"
+          },
+          "row_id": {
+            "format": "uuid",
+            "title": "Row Id",
+            "type": "string"
+          },
+          "table_name": {
+            "title": "Table Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "table_name",
+          "row_id",
+          "family_id",
+          "action",
+          "changed_by",
+          "changed_at",
+          "old_row",
+          "new_row",
+          "changed_fields"
+        ],
+        "title": "AuditEntry",
+        "type": "object"
+      },
       "CompleteRequest": {
         "properties": {
           "closed_on": {
@@ -1468,6 +1576,128 @@
         "summary": "Revoke Grant",
         "tags": [
           "permissions-admin"
+        ]
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "description": "Search the audit trail \u2014 filterable by table, row, family, and date range.",
+        "operationId": "audit_api_v1_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "table_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Table Name"
+            }
+          },
+          {
+            "in": "query",
+            "name": "row_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Row Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "family_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "changed_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Changed From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "changed_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Changed To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntry"
+                  },
+                  "title": "Response Audit Api V1 Audit Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit",
+        "tags": [
+          "audit"
         ]
       }
     },
