@@ -16,6 +16,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.mcp_server import build_mcp_app, mcp_session_lifespan
+from app.routes.families import router as families_router
+from app.routes.permissions_admin import me_router
+from app.routes.permissions_admin import router as permissions_router
 
 
 @asynccontextmanager
@@ -53,6 +56,10 @@ class HealthResponse(BaseModel):
 def health() -> HealthResponse:
     return HealthResponse(status="ok", service="brunetco-api", version=app.version)
 
+
+app.include_router(me_router)
+app.include_router(permissions_router)
+app.include_router(families_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
 # Auth is a documented TODO tied to the D44 JWT bridge — see mcp_server.py.

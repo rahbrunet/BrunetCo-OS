@@ -1,6 +1,269 @@
 {
   "components": {
     "schemas": {
+      "ApplyTemplateRequest": {
+        "properties": {
+          "template": {
+            "title": "Template",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "template"
+        ],
+        "title": "ApplyTemplateRequest",
+        "type": "object"
+      },
+      "CountryRecord": {
+        "description": "Per-jurisdiction slice of a family: one entry per matter.",
+        "properties": {
+          "application_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Application No"
+          },
+          "country": {
+            "description": "Internal jurisdiction code (EP-EPO/EP-EUIPO disambiguated)",
+            "title": "Country",
+            "type": "string"
+          },
+          "filing_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filing Date"
+          },
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "parent_matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Matter Id"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "registration_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Date"
+          },
+          "registration_no": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration No"
+          },
+          "relationship_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Type"
+          },
+          "responsible_associate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible Associate"
+          },
+          "responsible_attorney": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Responsible Attorney"
+          },
+          "segment": {
+            "description": "Ordered per-family segment: USP, US, US2, PCT, MP, ...",
+            "title": "Segment",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "matter_id",
+          "reference",
+          "country",
+          "segment",
+          "status"
+        ],
+        "title": "CountryRecord",
+        "type": "object"
+      },
+      "FamilyRecord": {
+        "description": "The canonical, versioned Family Record.",
+        "properties": {
+          "applicant": {
+            "description": "Client (applicant/owner) name",
+            "title": "Applicant",
+            "type": "string"
+          },
+          "client_code": {
+            "title": "Client Code",
+            "type": "string"
+          },
+          "countries": {
+            "items": {
+              "$ref": "#/components/schemas/CountryRecord"
+            },
+            "title": "Countries",
+            "type": "array"
+          },
+          "family_id": {
+            "format": "uuid",
+            "title": "Family Id",
+            "type": "string"
+          },
+          "family_type": {
+            "title": "Family Type",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          },
+          "schema_version": {
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family_id",
+          "reference",
+          "title",
+          "family_type",
+          "client_code",
+          "applicant",
+          "generated_at"
+        ],
+        "title": "FamilyRecord",
+        "type": "object"
+      },
+      "FamilyRecordExport": {
+        "description": "Signed, shareable snapshot (spec \u00a73.1) \u2014 the controlled foreign-associate sharing surface\ntoday, the Client Portal substrate (D34) and chain-write path later.",
+        "properties": {
+          "key_id": {
+            "description": "Identifier of the signing key used",
+            "title": "Key Id",
+            "type": "string"
+          },
+          "record": {
+            "$ref": "#/components/schemas/FamilyRecord"
+          },
+          "signature": {
+            "description": "HMAC-SHA256 over the canonical record JSON (v1 interim)",
+            "title": "Signature",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record",
+          "signature",
+          "key_id"
+        ],
+        "title": "FamilyRecordExport",
+        "type": "object"
+      },
+      "GrantRequest": {
+        "properties": {
+          "domain": {
+            "title": "Domain",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "domain"
+        ],
+        "title": "GrantRequest",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "HealthResponse": {
         "description": "Typed health payload \u2014 consumed end-to-end by the SPA to prove the contract loop.",
         "properties": {
@@ -24,6 +287,121 @@
         ],
         "title": "HealthResponse",
         "type": "object"
+      },
+      "MeResponse": {
+        "properties": {
+          "domains": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Domains",
+            "type": "array"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "domains"
+        ],
+        "title": "MeResponse",
+        "type": "object"
+      },
+      "UserGrants": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "domains": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Domains",
+            "type": "array"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "role_template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Template"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "display_name",
+          "role_template",
+          "is_active",
+          "domains"
+        ],
+        "title": "UserGrants",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
       }
     }
   },
@@ -34,6 +412,263 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/permissions": {
+      "get": {
+        "operationId": "list_users_api_v1_admin_permissions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserGrants"
+                  },
+                  "title": "Response List Users Api V1 Admin Permissions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Users",
+        "tags": [
+          "permissions-admin"
+        ]
+      }
+    },
+    "/api/v1/admin/permissions/apply-template": {
+      "post": {
+        "operationId": "apply_template_api_v1_admin_permissions_apply_template_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Apply Template Api V1 Admin Permissions Apply Template Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Apply Template",
+        "tags": [
+          "permissions-admin"
+        ]
+      }
+    },
+    "/api/v1/admin/permissions/grants": {
+      "post": {
+        "operationId": "add_grant_api_v1_admin_permissions_grants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Add Grant Api V1 Admin Permissions Grants Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Grant",
+        "tags": [
+          "permissions-admin"
+        ]
+      }
+    },
+    "/api/v1/admin/permissions/grants/{user_id}/{domain}": {
+      "delete": {
+        "operationId": "revoke_grant_api_v1_admin_permissions_grants__user_id___domain__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "domain",
+            "required": true,
+            "schema": {
+              "title": "Domain",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Revoke Grant Api V1 Admin Permissions Grants  User Id   Domain  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Grant",
+        "tags": [
+          "permissions-admin"
+        ]
+      }
+    },
+    "/api/v1/families/{family_id}/export": {
+      "get": {
+        "operationId": "get_family_export_api_v1_families__family_id__export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "family_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Family Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyRecordExport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Family Export",
+        "tags": [
+          "families"
+        ]
+      }
+    },
+    "/api/v1/families/{family_id}/record": {
+      "get": {
+        "operationId": "get_family_record_api_v1_families__family_id__record_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "family_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Family Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Family Record",
+        "tags": [
+          "families"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "operationId": "health_api_v1_health_get",
@@ -50,6 +685,27 @@
           }
         },
         "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "operationId": "me_api_v1_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
         "tags": [
           "system"
         ]
