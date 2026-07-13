@@ -237,6 +237,62 @@
         "title": "Body_import_csv_api_v1_rules_import_post",
         "type": "object"
       },
+      "BulkLinkIn": {
+        "properties": {
+          "citation_state": {
+            "default": "to_disclose",
+            "enum": [
+              "to_disclose",
+              "disclosed",
+              "considered",
+              "not_relevant",
+              "withdrawn"
+            ],
+            "title": "Citation State",
+            "type": "string"
+          },
+          "family_id": {
+            "format": "uuid",
+            "title": "Family Id",
+            "type": "string"
+          },
+          "ids_bundle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids Bundle"
+          },
+          "reference_id": {
+            "format": "uuid",
+            "title": "Reference Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_id",
+          "family_id"
+        ],
+        "title": "BulkLinkIn",
+        "type": "object"
+      },
+      "BulkLinkOut": {
+        "properties": {
+          "linked": {
+            "title": "Linked",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "linked"
+        ],
+        "title": "BulkLinkOut",
+        "type": "object"
+      },
       "CheckLogOut": {
         "properties": {
           "check_type": {
@@ -803,6 +859,36 @@
           "created_at"
         ],
         "title": "DocketTaskOut",
+        "type": "object"
+      },
+      "DutyOut": {
+        "properties": {
+          "counts_by_state": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts By State",
+            "type": "object"
+          },
+          "outstanding": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Outstanding",
+            "type": "array"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope",
+          "counts_by_state",
+          "outstanding"
+        ],
+        "title": "DutyOut",
         "type": "object"
       },
       "EditRequest": {
@@ -4310,6 +4396,48 @@
         ]
       }
     },
+    "/api/v1/prior-art/bulk-link": {
+      "post": {
+        "description": "Cross-cite a reference to every matter in a family the caller can see (family-wide OAs).",
+        "operationId": "bulk_link_api_v1_prior_art_bulk_link_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkLinkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkLinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bulk Link",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
     "/api/v1/prior-art/citations": {
       "get": {
         "description": "The citations view (feeds the 4A.2 matrix + duty dashboard). RLS-scoped by matter.",
@@ -4400,6 +4528,74 @@
           }
         },
         "summary": "List Citations",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
+    "/api/v1/prior-art/duty": {
+      "get": {
+        "description": "Duty-of-disclosure dashboard (\u00a71.56): counts by citation state + the outstanding\n(to_disclose) references for a matter or family. RLS-scoped.",
+        "operationId": "duty_dashboard_api_v1_prior_art_duty_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "matter_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Matter Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "family_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DutyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Duty Dashboard",
         "tags": [
           "prior-art"
         ]
@@ -4496,6 +4692,52 @@
           }
         },
         "summary": "Update Link State",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
+    "/api/v1/prior-art/matrix": {
+      "get": {
+        "description": "Cross-citation matrix for a family: references \u00d7 matters grid with a state per cell.",
+        "operationId": "matrix_api_v1_prior_art_matrix_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "family_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Family Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Matrix Api V1 Prior Art Matrix Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Matrix",
         "tags": [
           "prior-art"
         ]

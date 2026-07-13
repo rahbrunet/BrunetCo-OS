@@ -14,6 +14,8 @@ from uuid import UUID
 import psycopg
 from fastapi import APIRouter, HTTPException
 from py_shared.domain.prior_art import (
+    build_matrix,
+    bulk_link_family,
     link_reference,
     set_citation_state,
     upsert_reference,
@@ -57,6 +59,23 @@ class LinkOut(BaseModel):
 
 class StateIn(BaseModel):
     citation_state: CitationState
+
+
+class BulkLinkIn(BaseModel):
+    reference_id: UUID
+    family_id: UUID
+    citation_state: CitationState = "to_disclose"
+    ids_bundle: str | None = None
+
+
+class BulkLinkOut(BaseModel):
+    linked: int
+
+
+class DutyOut(BaseModel):
+    scope: str
+    counts_by_state: dict[str, int]
+    outstanding: list[dict[str, Any]]   # references still in 'to_disclose'
 
 
 class CitationRow(BaseModel):
@@ -121,6 +140,87 @@ def update_link_state(link_id: UUID, body: StateIn, identity: Identity) -> LinkO
     if not found:
         raise HTTPException(status_code=404, detail="Reference link not found")
     return LinkOut(id=link_id)
+
+
+@router.post("/bulk-link", response_model=BulkLinkOut, status_code=201)
+def bulk_link(body: BulkLinkIn, identity: Identity) -> BulkLinkOut:
+    """Cross-cite a reference to every matter in a family the caller can see (family-wide OAs)."""
+    try:
+        with identity.connection() as conn:
+            n = bulk_link_family(
+                conn, body.reference_id, body.family_id, identity.entra.os_user_id,
+                citation_state=body.citation_state, ids_bundle=body.ids_bundle,
+            )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except psycopg.Error as exc:
+        raise map_db_error(exc) from exc
+    return BulkLinkOut(linked=n)
+
+
+@router.get("/matrix")
+def matrix(identity: Identity, family_id: UUID) -> dict[str, Any]:
+    """Cross-citation matrix for a family: references × matters grid with a state per cell."""
+    with identity.connection() as conn:
+        rows = conn.execute(
+            """
+            select r.id, r.citation, r.title, l.matter_id, m.reference, l.citation_state::text
+              from app.reference_links l
+              join app.prior_art_references r on r.id = l.reference_id
+              join app.matters m on m.id = l.matter_id
+             where l.family_id = %s
+             order by r.citation, m.reference
+            """,
+            (family_id,),
+        ).fetchall()
+    return build_matrix(rows)
+
+
+@router.get("/duty", response_model=DutyOut)
+def duty_dashboard(
+    identity: Identity, matter_id: UUID | None = None, family_id: UUID | None = None,
+) -> DutyOut:
+    """Duty-of-disclosure dashboard (§1.56): counts by citation state + the outstanding
+    (to_disclose) references for a matter or family. RLS-scoped."""
+    scope = "firm"
+    if matter_id is not None:
+        scope = f"matter:{matter_id}"
+    elif family_id is not None:
+        scope = f"family:{family_id}"
+    with identity.connection() as conn:
+        counts = conn.execute(
+            """
+            select citation_state::text, count(*)
+              from app.reference_links l
+             where (%(matter_id)s::uuid is null or l.matter_id = %(matter_id)s)
+               and (%(family_id)s::uuid is null or l.family_id = %(family_id)s)
+             group by citation_state
+            """,
+            {"matter_id": matter_id, "family_id": family_id},
+        ).fetchall()
+        outstanding = conn.execute(
+            """
+            select r.citation, r.title, m.reference, l.matter_id, l.ids_bundle
+              from app.reference_links l
+              join app.prior_art_references r on r.id = l.reference_id
+              join app.matters m on m.id = l.matter_id
+             where l.citation_state = 'to_disclose'
+               and (%(matter_id)s::uuid is null or l.matter_id = %(matter_id)s)
+               and (%(family_id)s::uuid is null or l.family_id = %(family_id)s)
+             order by r.citation
+             limit 1000
+            """,
+            {"matter_id": matter_id, "family_id": family_id},
+        ).fetchall()
+    return DutyOut(
+        scope=scope,
+        counts_by_state={r[0]: r[1] for r in counts},
+        outstanding=[
+            {"citation": o[0], "title": o[1], "matter_reference": o[2],
+             "matter_id": str(o[3]), "ids_bundle": o[4]}
+            for o in outstanding
+        ],
+    )
 
 
 @router.get("/citations", response_model=list[CitationRow])
