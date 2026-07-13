@@ -128,6 +128,20 @@
         "title": "AuditEntry",
         "type": "object"
       },
+      "Body_import_csv_api_v1_rules_import_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_csv_api_v1_rules_import_post",
+        "type": "object"
+      },
       "CompleteRequest": {
         "properties": {
           "closed_on": {
@@ -447,6 +461,20 @@
           "created_at"
         ],
         "title": "DocketTaskOut",
+        "type": "object"
+      },
+      "EditRequest": {
+        "properties": {
+          "definition": {
+            "additionalProperties": true,
+            "title": "Definition",
+            "type": "object"
+          }
+        },
+        "required": [
+          "definition"
+        ],
+        "title": "EditRequest",
         "type": "object"
       },
       "FamilyCreate": {
@@ -823,6 +851,52 @@
           "version"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "ImportOut": {
+        "properties": {
+          "deadline_type_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Deadline Type Counts",
+            "type": "object"
+          },
+          "imported": {
+            "title": "Imported",
+            "type": "integer"
+          },
+          "ladder_stubs": {
+            "title": "Ladder Stubs",
+            "type": "integer"
+          },
+          "superseded_by_a1": {
+            "title": "Superseded By A1",
+            "type": "integer"
+          },
+          "total_rows": {
+            "title": "Total Rows",
+            "type": "integer"
+          },
+          "unresolved": {
+            "title": "Unresolved",
+            "type": "integer"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported",
+          "updated",
+          "unresolved",
+          "ladder_stubs",
+          "deadline_type_counts",
+          "superseded_by_a1",
+          "total_rows"
+        ],
+        "title": "ImportOut",
         "type": "object"
       },
       "MatterCreate": {
@@ -1420,6 +1494,208 @@
         "title": "ProvenanceOut",
         "type": "object"
       },
+      "RuleDetailOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "appcoll_task_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appcoll Task Type Id"
+          },
+          "approval_status": {
+            "title": "Approval Status",
+            "type": "string"
+          },
+          "definition": {
+            "additionalProperties": true,
+            "title": "Definition",
+            "type": "object"
+          },
+          "import_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Import Tags",
+            "type": "array"
+          },
+          "jurisdiction_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction Code"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rule_id": {
+            "format": "uuid",
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "trigger_code": {
+            "title": "Trigger Code",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "versions": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "rule_id",
+          "version",
+          "name",
+          "trigger_code",
+          "jurisdiction_code",
+          "definition",
+          "active",
+          "approval_status",
+          "source",
+          "appcoll_task_type_id",
+          "import_tags",
+          "summary",
+          "versions"
+        ],
+        "title": "RuleDetailOut",
+        "type": "object"
+      },
+      "RuleOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "appcoll_task_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appcoll Task Type Id"
+          },
+          "approval_status": {
+            "title": "Approval Status",
+            "type": "string"
+          },
+          "definition": {
+            "additionalProperties": true,
+            "title": "Definition",
+            "type": "object"
+          },
+          "import_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Import Tags",
+            "type": "array"
+          },
+          "jurisdiction_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction Code"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rule_id": {
+            "format": "uuid",
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "trigger_code": {
+            "title": "Trigger Code",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rule_id",
+          "version",
+          "name",
+          "trigger_code",
+          "jurisdiction_code",
+          "definition",
+          "active",
+          "approval_status",
+          "source",
+          "appcoll_task_type_id",
+          "import_tags",
+          "summary"
+        ],
+        "title": "RuleOut",
+        "type": "object"
+      },
+      "SimulateRequest": {
+        "properties": {
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "ref_date": {
+            "format": "date",
+            "title": "Ref Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "matter_id",
+          "ref_date"
+        ],
+        "title": "SimulateRequest",
+        "type": "object"
+      },
       "TriggerRequest": {
         "properties": {
           "matter_id": {
@@ -1466,6 +1742,48 @@
           "ref_date"
         ],
         "title": "TriggerRequest",
+        "type": "object"
+      },
+      "UnresolvedOut": {
+        "properties": {
+          "appcoll_task_type_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appcoll Task Type Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "raw": {
+            "additionalProperties": true,
+            "title": "Raw",
+            "type": "object"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "appcoll_task_type_id",
+          "reason",
+          "raw",
+          "resolved"
+        ],
+        "title": "UnresolvedOut",
         "type": "object"
       },
       "UserGrants": {
@@ -2761,6 +3079,317 @@
         "summary": "Me",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/rules": {
+      "get": {
+        "operationId": "list_rules_api_v1_rules_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RuleOut"
+                  },
+                  "title": "Response List Rules Api V1 Rules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Rules",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/import": {
+      "post": {
+        "description": "Import an AppColl TaskTypes CSV. Idempotent: a row whose appcoll_task_type_id already\nexists updates that rule's v1 definition rather than duplicating (re-runnable, M1-R3).\nImported rules land inactive + draft (except already-inactive superseded-by-a1 rows) so the\nengine never fires an unapproved rule; approval is a separate explicit step.",
+        "operationId": "import_csv_api_v1_rules_import_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_csv_api_v1_rules_import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Import Csv",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/unresolved": {
+      "get": {
+        "operationId": "unresolved_queue_api_v1_rules_unresolved_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_resolved",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Resolved",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UnresolvedOut"
+                  },
+                  "title": "Response Unresolved Queue Api V1 Rules Unresolved Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unresolved Queue",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{rule_id}": {
+      "get": {
+        "operationId": "get_rule_api_v1_rules__rule_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Rule",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{rule_id}/approve": {
+      "post": {
+        "description": "Activate the latest version of a draft rule (approval gate, M1-R4). Admin-only via RLS.",
+        "operationId": "approve_api_v1_rules__rule_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{rule_id}/simulate": {
+      "post": {
+        "description": "Dry-run the rule against a matter (M1-R4): preview generated dates + holiday-roll trace,\npersisting nothing. Runs even for draft/inactive rules \u2014 that is the whole point of previewing\nbefore activation.",
+        "operationId": "simulate_api_v1_rules__rule_id__simulate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Simulate Api V1 Rules  Rule Id  Simulate Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Simulate",
+        "tags": [
+          "rules"
+        ]
+      }
+    },
+    "/api/v1/rules/{rule_id}/versions": {
+      "post": {
+        "description": "Edit a rule = create a new version (append-only, M1-R4). The new version lands draft/\ninactive; in-flight tasks keep their generating version. Requires a structurally valid\ndefinition.",
+        "operationId": "new_version_api_v1_rules__rule_id__versions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "New Version",
+        "tags": [
+          "rules"
         ]
       }
     }

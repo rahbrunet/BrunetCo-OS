@@ -1,0 +1,14 @@
+task_type_id,name,deadline_type,jurisdiction,trigger_event,auto_generate,respond_by_offset,final_due_offset,alternate_offset,owner_resolution,field_action,reminder_of,source_integration
+TT-1001,Respond to Office Action,Extendable External,CA,office_action,true,4m,6m,,Attorney for matter,,,
+TT-1002,File National Phase Entry,Hard External,CA,pct_filing,true,,30m,,Patents Admin,,,
+TT-1003,Pay Maintenance Fee,Hard External,CA,filing,true,,2y,,Patents Admin,,,
+TT-1004,Confirm Allowance Recorded,Internal Deadline,CA,allowance,true,,14d,,Current User,AllowanceDate={TriggeringTask.RefDate},,
+TT-1005,Docket Reminder Review,General Reminder,,filing,true,,7d,,Patents Admin,,,
+TT-1006,Publication Event,Event,CA,publication,true,,0d,,Patents Admin,,,
+TT-1007,Transient Sync Marker,Transient Event,CA,sync,false,,0d,,Current User,,,
+TT-1008,Respond to Examiner Report (dual path),Extendable External,CA,examiner_report,true,3m,6m,4m,Attorney for matter,,,
+TT-1009,USPTO Status Task,Event,US,uspto_status,true,,0d,,Patents Admin,,,USPTO
+TT-1010,Renewal Reminder (108mo),General Reminder,CA,,true,,108m,,Patents Admin,,Pay Maintenance Fee,
+TT-1011,Broken Row No Trigger,Hard External,CA,,true,,3m,,Patents Admin,,,
+TT-1012,Unknown Deadline Type,Weird Type,CA,filing,true,,3m,,Patents Admin,,,
+TT-1013,No Offsets Row,Internal Deadline,CA,filing,true,,,,Patents Admin,,,

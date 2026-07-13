@@ -152,6 +152,41 @@ def complete_task(
     return True, chained
 
 
+def dry_run(
+    conn: psycopg.Connection,
+    definition: dict[str, Any],
+    matter_id: UUID,
+    ref_date: date,
+) -> dict[str, Any]:
+    """Preview what a rule would generate against a matter WITHOUT persisting (WP 1.3 simulator).
+
+    Loads the matter's jurisdiction holiday calendar and computes the offsets exactly as
+    fire_trigger would, returning the calculated dates + full holiday-roll trace — but writes
+    nothing. Raises LookupError if the matter is not visible (RLS) so the simulator surfaces the
+    same 404 as a real trigger.
+    """
+    matter = conn.execute(
+        "select jurisdiction_code from app.matters where id = %s", (matter_id,)
+    ).fetchone()
+    if matter is None:
+        raise LookupError("matter not found or not visible")
+    holidays = load_holidays(conn, matter[0])
+    calculated = compute_deadlines(definition, ref_date, holidays)
+    return {
+        "title": definition.get("title"),
+        "deadline_type": definition.get("deadline_type"),
+        "ref_date": ref_date.isoformat(),
+        "respond_by": (
+            calculated["respond_by"].rolled.isoformat() if "respond_by" in calculated else None
+        ),
+        "final_due_date": (
+            calculated["final_due_date"].rolled.isoformat()
+            if "final_due_date" in calculated else None
+        ),
+        "calculated_dates": {k: v.as_json() for k, v in calculated.items()},
+    }
+
+
 def rule_definition_is_valid(definition: dict[str, Any]) -> str | None:
     """Cheap structural validation of the declarative form; returns an error string or None."""
     if not isinstance(definition.get("title"), str) or not definition["title"]:
