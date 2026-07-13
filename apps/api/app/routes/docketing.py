@@ -16,6 +16,7 @@ from uuid import UUID
 
 import psycopg
 from fastapi import APIRouter, HTTPException, Response
+from py_shared.domain.annuities import AnnuityError, generate_annuity_tasks
 from py_shared.domain.docketing import GeneratedTask, complete_task, fire_trigger
 from pydantic import BaseModel
 
@@ -86,14 +87,15 @@ class ProvenanceOut(BaseModel):
     task_id: UUID
     matter_id: UUID
     family_id: UUID
-    rule_id: UUID
-    rule_version: int
+    rule_id: UUID | None           # null for rule-less generation (e.g. annuity series, WP 1.8)
+    rule_version: int | None
     trigger_type: TriggerType
     trigger_id: str | None
     input_dates: dict[str, Any]
     calculated_dates: dict[str, Any]
     generated_by: str
     generated_at: datetime
+    source_ref: str | None         # e.g. 'annuity:CA:5' for non-rule generators
 
 
 def _out(tasks: list[GeneratedTask]) -> list[GeneratedTaskOut]:
@@ -113,6 +115,36 @@ def trigger(body: TriggerRequest, identity: Identity) -> list[GeneratedTaskOut]:
     except psycopg.Error as exc:
         raise map_db_error(exc) from exc
     return _out(tasks)
+
+
+class AnnuityRequest(BaseModel):
+    matter_id: UUID
+
+
+class AnnuityTaskOut(BaseModel):
+    task_id: UUID
+    provenance_id: UUID
+    annuity_seq: int
+    year_label: str
+    respond_by: date
+    final_due_date: date
+
+
+@router.post("/annuities", response_model=list[AnnuityTaskOut], status_code=201)
+def annuities(body: AnnuityRequest, identity: Identity) -> list[AnnuityTaskOut]:
+    """Generate a matter's maintenance-fee series (M1-R8). Idempotent — returns only the newly
+    docketed years; already-docketed years are skipped. 404 if the matter is invisible; 422 if the
+    jurisdiction has no schedule or the matter lacks the required base date."""
+    try:
+        with identity.connection() as conn:
+            tasks = generate_annuity_tasks(conn, body.matter_id)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="Matter not found") from exc
+    except AnnuityError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except psycopg.Error as exc:
+        raise map_db_error(exc) from exc
+    return [AnnuityTaskOut(**t.__dict__) for t in tasks]
 
 
 @router.post("/tasks/{task_id}/complete", response_model=CompleteResponse)
@@ -182,7 +214,7 @@ def docket_tasks(
 
 _PROVENANCE_SQL = """
 select id, task_id, matter_id, family_id, rule_id, rule_version, trigger_type::text,
-       trigger_id, input_dates, calculated_dates, generated_by::text, generated_at
+       trigger_id, input_dates, calculated_dates, generated_by::text, generated_at, source_ref
   from app.task_provenance
  where (%(matter_id)s::uuid is null or matter_id = %(matter_id)s)
    and (%(rule_id)s::uuid is null or rule_id = %(rule_id)s)
@@ -225,7 +257,7 @@ def provenance(
         ProvenanceOut(
             id=r[0], task_id=r[1], matter_id=r[2], family_id=r[3], rule_id=r[4],
             rule_version=r[5], trigger_type=r[6], trigger_id=r[7], input_dates=r[8],
-            calculated_dates=r[9], generated_by=r[10], generated_at=r[11],
+            calculated_dates=r[9], generated_by=r[10], generated_at=r[11], source_ref=r[12],
         )
         for r in rows
     ]
@@ -249,6 +281,7 @@ def provenance_csv(
     writer.writerow([
         "id", "task_id", "matter_id", "family_id", "rule_id", "rule_version", "trigger_type",
         "trigger_id", "input_dates", "calculated_dates", "generated_by", "generated_at",
+        "source_ref",
     ])
     for r in rows:
         writer.writerow([str(v) if v is not None else "" for v in r])

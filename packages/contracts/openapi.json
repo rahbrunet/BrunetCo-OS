@@ -1,6 +1,62 @@
 {
   "components": {
     "schemas": {
+      "AnnuityRequest": {
+        "properties": {
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "matter_id"
+        ],
+        "title": "AnnuityRequest",
+        "type": "object"
+      },
+      "AnnuityTaskOut": {
+        "properties": {
+          "annuity_seq": {
+            "title": "Annuity Seq",
+            "type": "integer"
+          },
+          "final_due_date": {
+            "format": "date",
+            "title": "Final Due Date",
+            "type": "string"
+          },
+          "provenance_id": {
+            "format": "uuid",
+            "title": "Provenance Id",
+            "type": "string"
+          },
+          "respond_by": {
+            "format": "date",
+            "title": "Respond By",
+            "type": "string"
+          },
+          "task_id": {
+            "format": "uuid",
+            "title": "Task Id",
+            "type": "string"
+          },
+          "year_label": {
+            "title": "Year Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "provenance_id",
+          "annuity_seq",
+          "year_label",
+          "respond_by",
+          "final_due_date"
+        ],
+        "title": "AnnuityTaskOut",
+        "type": "object"
+      },
       "ApplyTemplateRequest": {
         "properties": {
           "template": {
@@ -1441,13 +1497,38 @@
             "type": "string"
           },
           "rule_id": {
-            "format": "uuid",
-            "title": "Rule Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
           },
           "rule_version": {
-            "title": "Rule Version",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Version"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
           },
           "task_id": {
             "format": "uuid",
@@ -1489,7 +1570,8 @@
           "input_dates",
           "calculated_dates",
           "generated_by",
-          "generated_at"
+          "generated_at",
+          "source_ref"
         ],
         "title": "ProvenanceOut",
         "type": "object"
@@ -2174,6 +2256,52 @@
         "summary": "Audit",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/docket/annuities": {
+      "post": {
+        "description": "Generate a matter's maintenance-fee series (M1-R8). Idempotent \u2014 returns only the newly\ndocketed years; already-docketed years are skipped. 404 if the matter is invisible; 422 if the\njurisdiction has no schedule or the matter lacks the required base date.",
+        "operationId": "annuities_api_v1_docket_annuities_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnuityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnnuityTaskOut"
+                  },
+                  "title": "Response Annuities Api V1 Docket Annuities Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Annuities",
+        "tags": [
+          "docketing"
         ]
       }
     },
