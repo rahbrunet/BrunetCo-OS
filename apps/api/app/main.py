@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from app.mcp_server import build_mcp_app, mcp_session_lifespan
 from app.routes.audit import router as audit_router
+from app.routes.conflicts import router as conflicts_router
 from app.routes.docketing import router as docketing_router
 from app.routes.families import router as families_router
 from app.routes.matters import router as matters_router
@@ -69,6 +70,7 @@ app.include_router(matters_router)
 app.include_router(docketing_router)
 app.include_router(rules_router)
 app.include_router(orchestrator_router)
+app.include_router(conflicts_router)
 app.include_router(audit_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.

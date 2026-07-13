@@ -237,6 +237,139 @@
         "title": "Body_import_csv_api_v1_rules_import_post",
         "type": "object"
       },
+      "CheckLogOut": {
+        "properties": {
+          "check_type": {
+            "title": "Check Type",
+            "type": "string"
+          },
+          "cleared": {
+            "title": "Cleared",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Id"
+          },
+          "query_text": {
+            "title": "Query Text",
+            "type": "string"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "results": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "run_at": {
+            "format": "date-time",
+            "title": "Run At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "query_text",
+          "check_type",
+          "matter_id",
+          "result_count",
+          "results",
+          "cleared",
+          "run_at"
+        ],
+        "title": "CheckLogOut",
+        "type": "object"
+      },
+      "CheckRequest": {
+        "properties": {
+          "check_type": {
+            "default": "on_demand",
+            "enum": [
+              "intake",
+              "on_demand"
+            ],
+            "title": "Check Type",
+            "type": "string"
+          },
+          "matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Id"
+          },
+          "min_score": {
+            "default": 0.3,
+            "title": "Min Score",
+            "type": "number"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "CheckRequest",
+        "type": "object"
+      },
+      "CheckResult": {
+        "properties": {
+          "check_id": {
+            "format": "uuid",
+            "title": "Check Id",
+            "type": "string"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchOut"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "check_id",
+          "query",
+          "result_count",
+          "matches"
+        ],
+        "title": "CheckResult",
+        "type": "object"
+      },
       "CompleteRequest": {
         "properties": {
           "closed_on": {
@@ -1024,6 +1157,39 @@
           "total_rows"
         ],
         "title": "ImportOut",
+        "type": "object"
+      },
+      "MatchOut": {
+        "properties": {
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "matched_on": {
+            "title": "Matched On",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kind",
+          "ref",
+          "label",
+          "matched_on",
+          "score"
+        ],
+        "title": "MatchOut",
         "type": "object"
       },
       "MatterCreate": {
@@ -2663,6 +2829,162 @@
         "summary": "Audit",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/conflicts": {
+      "get": {
+        "operationId": "list_checks_api_v1_conflicts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "matter_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Matter Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cleared",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cleared"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CheckLogOut"
+                  },
+                  "title": "Response List Checks Api V1 Conflicts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Checks",
+        "tags": [
+          "conflicts"
+        ]
+      }
+    },
+    "/api/v1/conflicts/check": {
+      "post": {
+        "description": "Run a conflict check and log it. Returns the ranked matches; an empty list means clear.",
+        "operationId": "run_check_api_v1_conflicts_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Check",
+        "tags": [
+          "conflicts"
+        ]
+      }
+    },
+    "/api/v1/conflicts/{check_id}/clear": {
+      "post": {
+        "description": "Mark a logged check as cleared (a human judged no true conflict).",
+        "operationId": "clear_check_api_v1_conflicts__check_id__clear_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "check_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Check Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckLogOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Clear Check",
+        "tags": [
+          "conflicts"
         ]
       }
     },
