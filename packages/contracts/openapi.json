@@ -1697,6 +1697,89 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MyDayItem": {
+        "properties": {
+          "deadline_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline Type"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Id"
+          },
+          "matter_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Reference"
+          },
+          "source": {
+            "enum": [
+              "docket",
+              "work_item"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "id",
+          "title",
+          "matter_id",
+          "matter_reference",
+          "due_date",
+          "deadline_type",
+          "status"
+        ],
+        "title": "MyDayItem",
+        "type": "object"
+      },
       "ProposalOut": {
         "properties": {
           "action_type": {
@@ -3936,6 +4019,32 @@
         "summary": "Me",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/my-day": {
+      "get": {
+        "description": "The caller's unified, due-ordered queue of open docket tasks + work items (WP 5.5-lite).",
+        "operationId": "my_day_api_v1_my_day_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MyDayItem"
+                  },
+                  "title": "Response My Day Api V1 My Day Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Day",
+        "tags": [
+          "my-day"
         ]
       }
     },

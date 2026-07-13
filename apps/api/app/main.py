@@ -21,6 +21,7 @@ from app.routes.conflicts import router as conflicts_router
 from app.routes.docketing import router as docketing_router
 from app.routes.families import router as families_router
 from app.routes.matters import router as matters_router
+from app.routes.my_day import router as my_day_router
 from app.routes.orchestrator import router as orchestrator_router
 from app.routes.permissions_admin import me_router
 from app.routes.permissions_admin import router as permissions_router
@@ -71,6 +72,7 @@ app.include_router(docketing_router)
 app.include_router(rules_router)
 app.include_router(orchestrator_router)
 app.include_router(conflicts_router)
+app.include_router(my_day_router)
 app.include_router(audit_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
