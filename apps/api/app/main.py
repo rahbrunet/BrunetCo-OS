@@ -25,6 +25,7 @@ from app.routes.my_day import router as my_day_router
 from app.routes.orchestrator import router as orchestrator_router
 from app.routes.permissions_admin import me_router
 from app.routes.permissions_admin import router as permissions_router
+from app.routes.prior_art import router as prior_art_router
 from app.routes.rules import router as rules_router
 
 
@@ -73,6 +74,7 @@ app.include_router(rules_router)
 app.include_router(orchestrator_router)
 app.include_router(conflicts_router)
 app.include_router(my_day_router)
+app.include_router(prior_art_router)
 app.include_router(audit_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.

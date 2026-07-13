@@ -370,6 +370,88 @@
         "title": "CheckResult",
         "type": "object"
       },
+      "CitationRow": {
+        "properties": {
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "citation_state": {
+            "title": "Citation State",
+            "type": "string"
+          },
+          "family_id": {
+            "format": "uuid",
+            "title": "Family Id",
+            "type": "string"
+          },
+          "ids_bundle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids Bundle"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "link_id": {
+            "format": "uuid",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "linked_at": {
+            "format": "date-time",
+            "title": "Linked At",
+            "type": "string"
+          },
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "matter_reference": {
+            "title": "Matter Reference",
+            "type": "string"
+          },
+          "reference_id": {
+            "format": "uuid",
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "link_id",
+          "reference_id",
+          "citation",
+          "kind",
+          "title",
+          "matter_id",
+          "matter_reference",
+          "family_id",
+          "citation_state",
+          "ids_bundle",
+          "linked_at"
+        ],
+        "title": "CitationRow",
+        "type": "object"
+      },
       "CompleteRequest": {
         "properties": {
           "closed_on": {
@@ -1157,6 +1239,74 @@
           "total_rows"
         ],
         "title": "ImportOut",
+        "type": "object"
+      },
+      "LinkIn": {
+        "properties": {
+          "citation_state": {
+            "default": "to_disclose",
+            "enum": [
+              "to_disclose",
+              "disclosed",
+              "considered",
+              "not_relevant",
+              "withdrawn"
+            ],
+            "title": "Citation State",
+            "type": "string"
+          },
+          "ids_bundle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids Bundle"
+          },
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "reference_id": {
+            "format": "uuid",
+            "title": "Reference Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_id",
+          "matter_id"
+        ],
+        "title": "LinkIn",
+        "type": "object"
+      },
+      "LinkOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "LinkOut",
         "type": "object"
       },
       "MatchOut": {
@@ -2015,6 +2165,98 @@
         "title": "ProvenanceOut",
         "type": "object"
       },
+      "ReferenceIn": {
+        "properties": {
+          "assignee": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignee"
+          },
+          "biblio": {
+            "additionalProperties": true,
+            "default": {},
+            "title": "Biblio",
+            "type": "object"
+          },
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "inventors": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventors"
+          },
+          "kind": {
+            "default": "patent",
+            "enum": [
+              "patent",
+              "npl"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "pub_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pub Date"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "citation"
+        ],
+        "title": "ReferenceIn",
+        "type": "object"
+      },
+      "ReferenceOut": {
+        "properties": {
+          "created": {
+            "title": "Created",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "created"
+        ],
+        "title": "ReferenceOut",
+        "type": "object"
+      },
       "RuleDetailOut": {
         "properties": {
           "active": {
@@ -2215,6 +2457,26 @@
           "ref_date"
         ],
         "title": "SimulateRequest",
+        "type": "object"
+      },
+      "StateIn": {
+        "properties": {
+          "citation_state": {
+            "enum": [
+              "to_disclose",
+              "disclosed",
+              "considered",
+              "not_relevant",
+              "withdrawn"
+            ],
+            "title": "Citation State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "citation_state"
+        ],
+        "title": "StateIn",
         "type": "object"
       },
       "TriggerRequest": {
@@ -4045,6 +4307,239 @@
         "summary": "My Day",
         "tags": [
           "my-day"
+        ]
+      }
+    },
+    "/api/v1/prior-art/citations": {
+      "get": {
+        "description": "The citations view (feeds the 4A.2 matrix + duty dashboard). RLS-scoped by matter.",
+        "operationId": "list_citations_api_v1_prior_art_citations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "matter_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Matter Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "family_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "citation_state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "to_disclose",
+                    "disclosed",
+                    "considered",
+                    "not_relevant",
+                    "withdrawn"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Citation State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CitationRow"
+                  },
+                  "title": "Response List Citations Api V1 Prior Art Citations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Citations",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
+    "/api/v1/prior-art/links": {
+      "post": {
+        "description": "Cross-link a reference to a matter with a citation state (idempotent on reference+matter).",
+        "operationId": "add_link_api_v1_prior_art_links_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Link",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
+    "/api/v1/prior-art/links/{link_id}": {
+      "patch": {
+        "description": "Advance a citation's \u00a71.56 state (to_disclose \u2192 disclosed \u2192 considered, \u2026).",
+        "operationId": "update_link_state_api_v1_prior_art_links__link_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Link State",
+        "tags": [
+          "prior-art"
+        ]
+      }
+    },
+    "/api/v1/prior-art/references": {
+      "post": {
+        "description": "Add a reference (idempotent on the normalized citation \u2014 one row per document).",
+        "operationId": "add_reference_api_v1_prior_art_references_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReferenceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Reference",
+        "tags": [
+          "prior-art"
         ]
       }
     },
