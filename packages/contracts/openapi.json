@@ -2743,6 +2743,111 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "WatcherFailureOut": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "matter_id",
+          "run_id",
+          "tag",
+          "detail",
+          "occurred_at"
+        ],
+        "title": "WatcherFailureOut",
+        "type": "object"
+      },
+      "WatcherRunOut": {
+        "properties": {
+          "agent_name": {
+            "title": "Agent Name",
+            "type": "string"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "stats": {
+            "additionalProperties": true,
+            "title": "Stats",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "agent_name",
+          "started_at",
+          "finished_at",
+          "status",
+          "stats"
+        ],
+        "title": "WatcherRunOut",
+        "type": "object"
       }
     }
   },
@@ -5093,6 +5198,131 @@
         "summary": "New Version",
         "tags": [
           "rules"
+        ]
+      }
+    },
+    "/api/v1/watchers/failures": {
+      "get": {
+        "description": "Failure tags, queryable per matter or per tag (CIPO 500 / scrape error / no data /\ndownload failed) \u2014 the legacy Error column, now visible on the matter.",
+        "operationId": "list_failures_api_v1_watchers_failures_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "matter_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Matter Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WatcherFailureOut"
+                  },
+                  "title": "Response List Failures Api V1 Watchers Failures Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Failures",
+        "tags": [
+          "watchers"
+        ]
+      }
+    },
+    "/api/v1/watchers/runs": {
+      "get": {
+        "description": "Per-run summaries (rows / new / handled / downloaded / errors) for the ops dashboard.",
+        "operationId": "list_runs_api_v1_watchers_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WatcherRunOut"
+                  },
+                  "title": "Response List Runs Api V1 Watchers Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Runs",
+        "tags": [
+          "watchers"
         ]
       }
     }

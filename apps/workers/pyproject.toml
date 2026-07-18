@@ -6,6 +6,8 @@ requires-python = ">=3.12"
 dependencies = [
     "psycopg[binary]>=3.2",
     "py-shared",
+    "playwright>=1.40",       # CIPO scrape engine (WP 6.2); browsers install via `playwright install chromium`
+    "2captcha-python>=1.2",   # reCAPTCHA solve for the CIPO download modal (WP 6.2)
 ]
 
 [build-system]
