@@ -28,6 +28,7 @@ from uuid import UUID
 import psycopg
 
 from py_shared import llm, redaction
+from py_shared.domain import knowledge_base as kb
 from py_shared.orchestrator import LLM_EGRESS, egress_check
 
 AGENT_NAME = "a9-drafter"
@@ -175,6 +176,27 @@ def validate_response(text: str, mapping: dict[str, str]) -> list[str]:
 # ---------------------------------------------------------------------------
 # Style corpus (per-user)
 # ---------------------------------------------------------------------------
+
+
+def select_kb_grounding(
+    conn: psycopg.Connection,
+    thread: list[ThreadMessage],
+    jurisdictions: list[str] | None = None,
+    limit: int = 4,
+) -> list[str]:
+    """Knowledge Base passages grounding this thread (WP 6.8, spec §A9).
+
+    Style comes from the user's own sent mail; **substance and authority come from the KB**, with
+    citations. The query is built from the latest inbound message — the one being answered —
+    rather than the whole thread, because a long chain drifts across topics and retrieving on all
+    of it returns passages relevant to a question nobody asked.
+
+    Current editions only: `grounding_snippets` excludes superseded practice, so a drafted letter
+    cannot quietly rest on a manual revision that no longer applies.
+    """
+    if not thread:
+        return []
+    return kb.grounding_snippets(conn, thread[-1].body, jurisdictions, limit)
 
 
 def select_style_examples(

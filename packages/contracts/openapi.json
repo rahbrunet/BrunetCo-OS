@@ -2129,6 +2129,75 @@
         "title": "MyDayItem",
         "type": "object"
       },
+      "PassageOut": {
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "extract": {
+            "title": "Extract",
+            "type": "string"
+          },
+          "heading_path": {
+            "title": "Heading Path",
+            "type": "string"
+          },
+          "is_superseded": {
+            "title": "Is Superseded",
+            "type": "boolean"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "type": "string"
+          },
+          "license_class": {
+            "title": "License Class",
+            "type": "string"
+          },
+          "may_quote": {
+            "title": "May Quote",
+            "type": "boolean"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "number"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "citation",
+          "heading_path",
+          "extract",
+          "source_key",
+          "source_name",
+          "jurisdiction",
+          "edition_label",
+          "license_class",
+          "may_quote",
+          "is_superseded",
+          "rank"
+        ],
+        "title": "PassageOut",
+        "type": "object"
+      },
       "ProposalOut": {
         "properties": {
           "action_type": {
@@ -2703,6 +2772,79 @@
           "ref_date"
         ],
         "title": "SimulateRequest",
+        "type": "object"
+      },
+      "SourceOut": {
+        "properties": {
+          "authority_type": {
+            "title": "Authority Type",
+            "type": "string"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "is_stale": {
+            "title": "Is Stale",
+            "type": "boolean"
+          },
+          "is_superseded": {
+            "title": "Is Superseded",
+            "type": "boolean"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "license_class": {
+            "title": "License Class",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "refresh_interval_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Interval Days"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refreshed At"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "jurisdiction",
+          "authority_type",
+          "license_class",
+          "edition_label",
+          "refreshed_at",
+          "refresh_interval_days",
+          "is_superseded",
+          "is_stale"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "StateIn": {
@@ -4690,6 +4832,140 @@
         "summary": "Health",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/kb/search": {
+      "get": {
+        "description": "Ranked passages with citations.\n\n`include_superseded` defaults false \u2014 current law unless history is explicitly requested.",
+        "operationId": "search_api_v1_kb_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "jurisdiction",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jurisdiction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_superseded",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Superseded",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PassageOut"
+                  },
+                  "title": "Response Search Api V1 Kb Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "knowledge-base"
+        ]
+      }
+    },
+    "/api/v1/kb/sources": {
+      "get": {
+        "description": "The corpus registry with freshness state \u2014 the ops answer to \"is our grounding current?\".\n\nA source registered but never fetched reads as stale, which is the honest answer: an agent\ngrounding on an empty feed is worse off than one that knows it has nothing.",
+        "operationId": "list_sources_api_v1_kb_sources_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "stale_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Stale Only",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceOut"
+                  },
+                  "title": "Response List Sources Api V1 Kb Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sources",
+        "tags": [
+          "knowledge-base"
         ]
       }
     },
