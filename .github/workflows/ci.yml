@@ -37,6 +37,8 @@ jobs:
             echo "applying $f"
             PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -v ON_ERROR_STOP=1 -f "$f"
           done
+      - name: Apply dev seeds (dev users + permission grants the API tests authenticate as)
+        run: PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d postgres -v ON_ERROR_STOP=1 -f supabase/seed.sql
       - name: Lint (ruff)
         run: uv run ruff check .
       - name: Typecheck (mypy)
