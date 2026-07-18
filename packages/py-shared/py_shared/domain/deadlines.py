@@ -86,6 +86,25 @@ def roll_forward(when: date, holidays: dict[date, str]) -> tuple[date, list[Roll
         current = nxt
 
 
+def add_business_days(start: date, days: int, holidays: dict[date, str]) -> date:
+    """Advance ``days`` business days from ``start``, skipping weekends and holidays.
+
+    Distinct from `add_offset` + `roll_forward`, and the difference matters: office deadlines are
+    *calendar* offsets that then roll off a non-business day, whereas internal cycle times ("three
+    days to review the draft") are counts of actual working days. Using calendar arithmetic for a
+    cycle time silently shortens every task that spans a weekend.
+
+    ``days = 0`` returns the next business day on or after ``start`` — work does not begin on a
+    Saturday.
+    """
+    if days < 0:
+        raise ValueError("business-day offsets must be non-negative")
+    current, _ = roll_forward(start, holidays)
+    for _ in range(days):
+        current, _ = roll_forward(current + timedelta(days=1), holidays)
+    return current
+
+
 def compute_deadlines(
     definition: dict[str, Any], ref_date: date, holidays: dict[date, str]
 ) -> dict[str, CalculatedDate]:
