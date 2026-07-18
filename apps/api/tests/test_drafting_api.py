@@ -51,14 +51,21 @@ class FakeNer:
     def available(self) -> bool:
         return True
 
-    def entities(self, text: str) -> list[tuple[str, str]]:
-        return [(v, "PERSON") for v in ("Jane Smith",) if v in text]
+    def entities(self, text: str) -> list[tuple[int, int, str]]:
+        """Character spans, matching the real backend contract (offsets, not surface text)."""
+        spans: list[tuple[int, int, str]] = []
+        for value in ("Jane Smith",):
+            start = text.find(value)
+            while start != -1:
+                spans.append((start, start + len(value), "PERSON"))
+                start = text.find(value, start + 1)
+        return spans
 
 
 class FakeLlm:
     """Echoes a fixed reply. `canned` lets a test drive the validator path."""
 
-    def __init__(self, canned: str = "Hi [PERSON_1] — the report is due 2026-09-01.") -> None:
+    def __init__(self, canned: str = "Hi PERSON_001 — the report is due 2026-09-01.") -> None:
         self._canned = canned
 
     @property

@@ -83,7 +83,7 @@ SYSTEM_PROMPT = (
     "Match the voice of the STYLE EXAMPLES: their greeting, register, sentence length and "
     "sign-off. Use the KNOWLEDGE BASE excerpts for any statement of law or procedure, and cite "
     "the section you relied on. Personal names, organizations and contact details have been "
-    "replaced with placeholders such as [PERSON_1] and [ORG_2]; reproduce those placeholders "
+    "replaced with placeholders such as PERSON_001 and ORG_002; reproduce those placeholders "
     "exactly as given and never invent new ones. Reply with the body of the email only."
 )
 
@@ -163,7 +163,7 @@ def validate_response(text: str, mapping: dict[str, str]) -> list[str]:
         if pattern.search(text):
             reasons.append(f"injection_shaped:{name}")
     unknown = {
-        ph for ph in re.findall(r"\[[A-Z]+_\d+\]", text) if ph not in mapping
+        ph for ph in re.findall(r"\b[A-Z]{3,}_\d{3,}\b", text) if ph not in mapping
     }
     if unknown:
         reasons.append(f"unknown_placeholder:{','.join(sorted(unknown))}")

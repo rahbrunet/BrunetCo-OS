@@ -48,9 +48,9 @@ def test_attachment_text_is_carried_with_its_filename() -> None:
 
 
 def test_system_prompt_tells_the_model_to_preserve_placeholders() -> None:
-    """Without this instruction the model helpfully "fixes" [PERSON_1] into a plausible invented
+    """Without this instruction the model helpfully "fixes" PERSON_001 into a plausible invented
     name, which rehydration cannot undo."""
-    assert "[PERSON_1]" in drafting.SYSTEM_PROMPT
+    assert "PERSON_001" in drafting.SYSTEM_PROMPT
     assert "never invent" in drafting.SYSTEM_PROMPT.lower()
 
 
@@ -89,17 +89,17 @@ def test_injection_shaped_output_is_discarded(response: str) -> None:
 
 
 def test_invented_placeholder_is_caught() -> None:
-    """[PERSON_9] rehydrates to nothing and ships a literal bracket-token to a client — and it
+    """PERSON_009 rehydrates to nothing and ships a literal placeholder token to a client — and it
     means the model was improvising about identity."""
     reasons = drafting.validate_response(
-        "Dear [PERSON_9], thank you.", {"[PERSON_1]": "Jane Smith"},
+        "Dear PERSON_009, thank you.", {"PERSON_001": "Jane Smith"},
     )
     assert any(r.startswith("unknown_placeholder") for r in reasons)
 
 
 def test_issued_placeholders_are_fine() -> None:
     reasons = drafting.validate_response(
-        "Dear [PERSON_1], thank you.", {"[PERSON_1]": "Jane Smith"},
+        "Dear PERSON_001, thank you.", {"PERSON_001": "Jane Smith"},
     )
     assert reasons == []
 
@@ -111,8 +111,8 @@ def test_empty_response_is_discarded_rather_than_queued() -> None:
 
 def test_ordinary_reply_passes_clean() -> None:
     reasons = drafting.validate_response(
-        "Hi [PERSON_1] — the examiner's report is due 2026-09-01. I'll prepare a response.",
-        {"[PERSON_1]": "Jane Smith"},
+        "Hi PERSON_001 — the examiner's report is due 2026-09-01. I'll prepare a response.",
+        {"PERSON_001": "Jane Smith"},
     )
     assert reasons == []
 

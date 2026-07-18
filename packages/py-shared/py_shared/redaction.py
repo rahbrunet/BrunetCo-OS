@@ -1,31 +1,41 @@
 """Shared redaction service (WP 6.9 §0, D45) — the single de-identification choke point.
 
 Every OS agent that sends firm data to an external LLM calls this first. Ported from the legacy
-`/opt/email-assistant/redactor.py`, which has run in production with a measured 0% false-cancel
-rate over 213+ real messages. The properties below are the reason it achieves that; none of them
-are incidental, so none of them may be "simplified" away.
+`/opt/email-assistant/src/redactor.py`, which has run in production since 2026-06-23 with a
+measured **0% false-cancel rate over 213 real messages** — down from ~89% with an earlier
+span-based implementation. That number is the whole point: a redactor that cancels legitimate
+drafts trains users to route around the safety control, so over-masking is a real failure mode
+and not merely an inconvenience.
 
-  * Global-occurrence masking. When the NER model tags "Acme Corp" in one sentence, every other
-    occurrence in the text is masked too — including the ones the model missed. Entity recognition
-    is recall-limited; occurrence matching is not.
+The properties below are what earned that rate. None are incidental.
 
-  * Boundary-aware leak verification. `verify_clean` re-scans the masked text for the original
-    values using word boundaries. Substring matching was the source of the legacy false cancels:
-    masking a person named "Mark" made every "Marketing" look like a leak, and a cancelled draft
-    trains users to stop using the tool.
+  * **Two independent detection layers.** Regex for structured identifiers, spaCy NER for
+    names/orgs/locations, plus a caller-supplied known-entity dictionary that masks regardless of
+    what either layer noticed. Regex wins on overlap — it is the more precise of the two.
 
-  * An independent structured-identifier backstop. Emails, URLs, domains, phone numbers and
-    postcodes are matched by regex, entirely separately from the NER path. Two mechanisms with
-    uncorrelated failure modes: a missing spaCy model cannot silently disable identifier masking,
-    and a regex gap cannot silently disable name masking.
+  * **Global-occurrence masking.** An entity tagged once is masked everywhere in the text,
+    including the quoted chain and headers. Span-only substitution was the root cause of the
+    legacy false-cancel rate: untagged repeats survived and tripped the leak guard.
 
-  * Fail-closed. If the NER backend is unavailable and `require_ner` is set, `redact` raises
-    rather than returning weakly-masked text. The caller's only options become "cancel" or
-    "cancel and alert" — never "send it anyway". The egress gate (WP 6.1) enforces the same
-    invariant one layer out: no redaction ref, no LLM call.
+  * **Boundary-aware leak verification.** `verify_clean` re-scans for mapped values as whole
+    tokens. Substring matching made a person named "Mark" flag every "Marketing".
 
-The mapping never leaves the process. `redact` returns it for the `rehydrate` round-trip and the
-audit records only label counts — see migration 0015 for why persisting it would be self-defeating.
+  * **A separate, narrower guard pattern set.** `MASK_PATTERNS` decides what gets masked;
+    `GUARD_PATTERNS` decides what *cancels the call*. The guard covers only high-risk classes
+    (email/URL/domain/phone/address/postcode). Dates, money and patent numbers are masked but
+    deliberately do NOT cancel — a date surviving in cleartext is not a privacy breach, and
+    cancelling on one would ground the drafter permanently.
+
+  * **Fail-closed.** No NER model and `require_ner` set means no redaction and no call.
+
+Deliberate deviations from the legacy service, both documented in the WP 6.9 tracker row:
+  * the NER backend is a protocol rather than a hard spaCy import, so this module stays
+    importable — and the regex layer stays testable — without the ~800 MB model present;
+  * the known-entity dictionary is passed in by the caller (from the OS matter/client tables)
+    instead of read from `data/known_entities.txt` on disk.
+
+The mapping never leaves the process. `redact` returns it for the `rehydrate` round-trip; the
+audit records label counts only — see migration 0015 for why persisting it would be self-defeating.
 """
 from __future__ import annotations
 
@@ -55,35 +65,28 @@ class NerBackend(Protocol):
         """False when the model cannot be loaded — triggers the fail-closed path."""
         ...
 
-    def entities(self, text: str) -> list[tuple[str, str]]:
-        """(surface_text, label) pairs. Labels follow spaCy's scheme (PERSON/ORG/GPE/...)."""
+    def entities(self, text: str) -> list[tuple[int, int, str]]:
+        """(start_char, end_char, label) spans. Offsets, not surface text, so the caller can
+        resolve regex/NER overlaps by position exactly as the legacy service does."""
         ...
 
 
-# Labels worth masking. spaCy emits plenty more (CARDINAL, ORDINAL, DATE...) that carry no
-# identity and whose masking would shred the text's meaning for the model.
-MASKED_LABELS = frozenset({"PERSON", "ORG", "GPE", "LOC", "FAC", "NORP"})
-
-# spaCy reliably mislabels these as ORG/PERSON in legal correspondence. Masking them costs the
-# model real context ("the Patent Office" -> "[ORG_3]") and protects nothing — they are public
-# institutions and terms of art, not client identities.
-_STOPLIST = frozenset({
-    "cipo", "uspto", "epo", "wipo", "euipo", "patent office", "the patent office",
-    "canadian intellectual property office", "united states patent and trademark office",
-    "european patent office", "pct", "madrid", "paris convention", "mopop", "mpep", "tmep",
-    "trademarks journal", "patent act", "trademarks act", "federal court", "supreme court",
-    "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-    "january", "february", "march", "april", "may", "june", "july", "august", "september",
-    "october", "november", "december",
-    "re", "fw", "fwd", "cc", "bcc", "attn", "ltd", "inc", "llp", "llc", "corp",
-})
+# spaCy labels worth masking, mapped to placeholder prefixes. GPE/LOC/FAC collapse to one
+# LOCATION prefix (legacy behaviour): the distinction between a city, a region and a facility
+# tells the model nothing useful once the value is gone.
+SPACY_LABELS = {
+    "PERSON": "PERSON",
+    "ORG": "ORG",
+    "GPE": "LOCATION",
+    "LOC": "LOCATION",
+    "FAC": "LOCATION",
+}
 
 
 class SpacyNerBackend:
-    """Production backend. Prefers `en_core_web_md` (the legacy service's model) and falls back to
-    `en_core_web_sm`; if neither is installed it reports unavailable and the fail-closed path
-    takes over. spaCy is an optional dependency precisely so this file stays importable — and the
-    structured backstop stays testable — on a machine without the model."""
+    """Production backend. Prefers `en_core_web_md` (the legacy service's model — better name and
+    org recall, which is the limiting factor once masking is global) and falls back to
+    `en_core_web_sm`. Parser/tagger/lemmatizer are disabled: only NER is used."""
 
     _MODELS = ("en_core_web_md", "en_core_web_sm")
 
@@ -96,7 +99,7 @@ class SpacyNerBackend:
             return
         for model in self._MODELS:
             try:
-                self._nlp = spacy.load(model)
+                self._nlp = spacy.load(model, disable=["lemmatizer", "tagger", "parser"])
                 self._name = f"spacy:{model}"
                 return
             except OSError:
@@ -109,51 +112,200 @@ class SpacyNerBackend:
     def available(self) -> bool:
         return self._nlp is not None
 
-    def entities(self, text: str) -> list[tuple[str, str]]:
+    def entities(self, text: str) -> list[tuple[int, int, str]]:
         if self._nlp is None:
             return []
         doc = self._nlp(text)  # type: ignore[operator]
-        return [(ent.text, ent.label_) for ent in doc.ents]
+        return [
+            (ent.start_char, ent.end_char, SPACY_LABELS[ent.label_])
+            for ent in doc.ents
+            if ent.label_ in SPACY_LABELS and ent.text.strip()
+        ]
 
 
 # ---------------------------------------------------------------------------
-# Structured identifiers (independent of NER by design)
+# Structured patterns — ported verbatim from the legacy service
 # ---------------------------------------------------------------------------
+#
+# Order matters: more specific patterns are listed first so they claim a span before a greedier
+# one can (e.g. a patent number before a bare integer).
 
-# Ordered: email before URL before bare domain, so the most specific pattern claims the span and
-# a bare-domain match cannot chew the tail off an address.
-_STRUCTURED_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")),
-    ("URL", re.compile(r"https?://[^\s<>\"')]+")),
-    ("DOMAIN", re.compile(r"\b(?:[\w-]+\.)+(?:com|ca|org|net|io|co\.uk|gov|edu)\b", re.I)),
-    ("PHONE", re.compile(r"\b(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b")),
-    # Canadian postal code (A1A 1A1) and US ZIP/ZIP+4.
-    ("POSTCODE", re.compile(r"\b(?:[A-Z]\d[A-Z][ -]?\d[A-Z]\d|\d{5}(?:-\d{4})?)\b")),
-    ("ADDRESS", re.compile(
-        r"\b\d{1,5}\s+(?:[A-Z][\w.'-]*\s+){0,3}"
-        r"(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Court|Ct|Way|Suite|Ste)\b",
-        re.I,
+MASK_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    # Email — first; contains '@', unambiguous.
+    ("EMAIL", re.compile(r"\b[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}\b")),
+
+    # URLs / domains
+    ("URL", re.compile(r"\bhttps?://[^\s<>()\"']+", re.IGNORECASE)),
+    ("URL", re.compile(r"\bwww\.[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+", re.IGNORECASE)),
+    # Bare registrable domain. The TLD allowlist is what stops this firing on "Fig.3", "i.e."
+    # and "Brunet & Co." — a bare `\w+\.\w+` here was a false-cancel source.
+    ("URL", re.compile(
+        r"\b(?:[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?\.)+"
+        r"(?:com|org|net|edu|gov|mil|int|io|co|ai|app|dev|law|biz|info|me|tv|"
+        r"us|ca|uk|eu|se|de|fr|nl|jp|cn|kr|au|nz|in|ch|it|es|no|fi|dk|ie|sg|hk)\b",
+        re.IGNORECASE,
     )),
+
+    # Street addresses. Requiring capitalized name words avoids "5 Way" / "3 Road map" misfires.
+    ("ADDRESS", re.compile(
+        r"\b\d{1,6}\s+(?:[A-Z][A-Za-z0-9.'\-]*\s+){1,4}"
+        r"(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|"
+        r"Court|Ct|Way|Place|Pl|Square|Sq|Terrace|Ter|Crescent|Cres|Townline|"
+        r"Trail|Parkway|Pkwy|Highway|Hwy|Circle|Cir|Close|Row|Walk|Concession)"
+        r"\b\.?"
+    )),
+    ("ADDRESS", re.compile(r"\bP\.?\s?O\.?\s?Box\s+\d{1,6}\b", re.IGNORECASE)),
+    # Number-less named street. Distinctive suffixes only (no St/Rd/Way/Walk) to limit idiom
+    # misfires; the legacy service accepted the residual false-cancel risk on this high-risk class.
+    ("ADDRESS", re.compile(
+        r"\b(?:[A-Z][A-Za-z'\-]+\s+){1,3}"
+        r"(?:Street|Avenue|Boulevard|Road|Lane|Drive|Townline|Concession|"
+        r"Parkway|Highway|Crescent|Terrace)\b"
+    )),
+
+    # Postcodes. NOTE: bare 5-digit US ZIP is deliberately NOT matched — it is indistinguishable
+    # from ordinary 5-digit numbers (amounts, counts, patent fragments) and masking it was judged
+    # too noisy. ZIP+4 is distinctive enough to be safe.
+    ("POSTCODE", re.compile(r"\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b")),      # UK
+    ("POSTCODE", re.compile(r"\b[A-Za-z]\d[A-Za-z]\s?\d[A-Za-z]\d\b")),       # Canada
+    ("POSTCODE", re.compile(r"\b\d{5}-\d{4}\b")),                             # US ZIP+4
+
+    # Patent numbers — in an IP practice these are among the most client-identifying tokens
+    # in any message, which is why they are masked rather than treated as domain vocabulary.
+    ("PATENT", re.compile(r"\bPCT/[A-Z]{2}\d{4}/\d{5,6}\b")),
+    ("PATENT", re.compile(r"\bWO[\s/]?\d{4}[/\s]?\d{6}(?:\s?[A-Z]\d?)?\b")),
+    ("PATENT", re.compile(r"\bEP[\s]?\d[\d\s]{5,8}\d(?:\s?[A-Z]\d?)?\b")),
+    ("PATENT", re.compile(r"\bUS[\s]?\d{4}/\d{7}(?:\s?[A-Z]\d?)?\b")),
+    ("PATENT", re.compile(r"\bUS[\s]?[\d,]{7,12}(?:\s?[A-Z]\d?)?\b")),
+    ("PATENT", re.compile(r"\bCA[\s]?[\d,]{6,10}(?:\s?[A-Z]\d?)?\b")),
+
+    # Application / docket / file references
+    ("APPNO", re.compile(
+        r"\b(?:Application|Serial|Appl\.?)\s*(?:No\.?|Number|#)?\s*[:.]?\s*"
+        r"\d{2}[/\-]?\d{3},?\d{3}\b",
+        re.IGNORECASE,
+    )),
+    ("DOCKET", re.compile(
+        r"\b(?:Docket|Our\s+Ref(?:erence)?|Your\s+Ref(?:erence)?|File)\s*"
+        r"(?:No\.?|Number|#)?\s*[:.]?\s*[A-Z0-9][A-Z0-9\-/.]{3,}\b",
+        re.IGNORECASE,
+    )),
+    ("DOCKET", re.compile(r"\b[A-Z]{2,5}-\d{3,5}(?:-\d{2,5})+\b")),
+    ("DOCKET", re.compile(r"\b[A-Z]{2,5}-\d{3,6}\b")),
+
+    # Phone — North American, then international.
+    ("PHONE", re.compile(
+        r"(?<![\w.])(?:\+?\d{1,3}[\s.\-]?)?(?:\(\d{3}\)|\d{3})[\s.\-]\d{3}[\s.\-]\d{4}\b"
+    )),
+    ("PHONE", re.compile(
+        r"(?<![\w.])\+\d{1,3}(?:[\s.\-]?\(?\d{1,4}\)?){1,2}(?:[\s.\-]\d{2,8}){1,3}\b"
+    )),
+
+    ("MONEY", re.compile(
+        r"(?:(?:USD|CAD|EUR|GBP|\$|€|£)\s?[\d,]+(?:\.\d{2})?)"
+        r"|(?:\b[\d,]+(?:\.\d{2})?\s?(?:USD|CAD|EUR|GBP|dollars|euros)\b)",
+        re.IGNORECASE,
+    )),
+
+    # Dates — a date plus a matter is often enough to identify a filing.
+    ("DATE", re.compile(r"\b\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?Z?)?\b")),
+    ("DATE", re.compile(
+        r"\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+        r"Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+        r"\.?\s+\d{1,2},?\s+\d{4}\b",
+        re.IGNORECASE,
+    )),
+    ("DATE", re.compile(
+        r"\b\d{1,2}\s+(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|"
+        r"Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|"
+        r"Dec(?:ember)?)\.?\s+\d{4}\b",
+        re.IGNORECASE,
+    )),
+    ("DATE", re.compile(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b")),
 )
 
+# The fail-closed backstop set — a STRICT SUBSET of the above, and the distinction is the
+# design. These classes cancel the call if they survive into the redacted text. Dates, money,
+# patent and docket numbers are masked but absent here on purpose: cancelling on a surviving
+# date would ground the drafter permanently for no privacy gain.
+GUARD_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = tuple(
+    (label.lower(), pattern)
+    for label, pattern in MASK_PATTERNS
+    if label in {"EMAIL", "URL", "PHONE", "ADDRESS", "POSTCODE"}
+)
 
-def scan_structured_identifiers(text: str) -> list[tuple[str, str]]:
-    """(value, label) for every structured identifier in ``text``.
+# ---------------------------------------------------------------------------
+# Exclusion sets — values that pass through in cleartext
+# ---------------------------------------------------------------------------
+#
+# Every entry must be genuinely non-identifying. Client-identifying values are NEVER added here;
+# they are caught by NER, regex, or the known-entity dictionary.
 
-    Used twice, and the duplication is the point: once by `redact` to mask these values, and again
-    by the caller (or `verify_clean`) against the *masked* text as a backstop. Because it shares no
-    code path with the NER backend, a failure in one cannot mask a gap in the other.
+# IP/patent domain acronyms. Masking "PCT" protects nobody and costs the model the vocabulary
+# it needs to draft sensibly.
+STOPLIST = frozenset({
+    "IP", "PCT", "EP", "EPO", "WIPO", "USPTO", "CIPO", "EUIPO", "INTA",
+    "PPH", "OA", "IDS", "RCE", "POA", "NPE", "PTO", "EPC", "TM", "IPR",
+    "PTAB", "FTO", "NDA", "WO", "PPA", "NOA", "ROA", "SB", "ADS",
+})
+
+# Our own prompt scaffolding. NER false-positives on these would trip the leak guard.
+RESERVED = frozenset({
+    "PRINCIPAL", "OTHER", "CONVERSATION THREAD", "ATTACHMENTS", "STYLE EXAMPLES",
+    "TASK", "EXAMPLE", "ATTACHMENT", "KNOWLEDGE BASE", "EMAIL THREAD",
+})
+
+# Generic geography. Applied ONLY to LOCATION entities — a client named "Jordan" or an org
+# named "Alberta Holdings" must still mask.
+COMMON_GEO = frozenset({
+    "us", "u.s.", "usa", "u.s.a.", "united states", "america",
+    "canada", "ca", "china", "prc", "japan", "korea", "south korea",
+    "north korea", "india", "mexico", "brazil", "australia", "uk",
+    "u.k.", "united kingdom", "great britain", "britain", "england",
+    "germany", "france", "italy", "spain", "netherlands", "switzerland",
+    "sweden", "norway", "denmark", "finland", "ireland", "belgium",
+    "austria", "poland", "russia", "taiwan", "hong kong", "singapore",
+    "new zealand", "israel", "europe", "eu", "european union", "asia",
+    "north america", "south america", "africa", "scandinavia",
+    "ontario", "on", "quebec", "qc", "british columbia", "bc",
+    "alberta", "ab", "manitoba", "mb", "saskatchewan", "sk",
+    "nova scotia", "ns", "new brunswick", "nb", "newfoundland", "nl",
+    "prince edward island", "pe", "pei",
+    "california", "new york", "texas", "tx", "florida", "fl",
+    "washington", "wa", "massachusetts", "ma", "illinois", "il",
+    "pennsylvania", "pa", "ohio", "oh", "georgia", "ga", "michigan", "mi",
+    "new jersey", "nj", "virginia", "va", "colorado", "arizona", "az",
+    "delaware", "de", "minnesota", "mn", "oregon", "or",
+})
+
+
+def _norm(text: str) -> str:
+    """Lowercased, edge-punctuation-stripped form for set membership tests."""
+    return text.strip().strip(" \t()[]{}<>:;,.\"'`").lower()
+
+
+def is_excluded(entity_type: str, value: str, allow: Iterable[str] = ()) -> bool:
+    """True if ``value`` should pass through in cleartext.
+
+    ``allow`` is the principal-allow set: the firm's own people and entity names. Only FULL forms
+    belong in it — listing a bare surname would leave client entities containing that surname
+    ("H. Brunet Family Trust") unmasked, which is precisely the case the legacy service guards.
     """
-    found: list[tuple[str, str]] = []
-    claimed: list[tuple[int, int]] = []
-    for label, pattern in _STRUCTURED_PATTERNS:
-        for match in pattern.finditer(text):
-            start, end = match.span()
-            if any(start < c_end and c_start < end for c_start, c_end in claimed):
-                continue  # a more specific pattern already owns this span
-            claimed.append((start, end))
-            found.append((match.group(0), label))
-    return found
+    normalized = _norm(value)
+    if not normalized:
+        return True
+    upper = value.strip().upper()
+    # Alpha-only form so "Attachment(s" still matches the RESERVED entry "ATTACHMENTS".
+    alpha = re.sub(r"[^A-Za-z]", "", value).upper()
+    if upper in STOPLIST or alpha in STOPLIST:
+        return True
+    if upper in RESERVED or alpha in RESERVED or normalized.upper() in RESERVED:
+        return True
+    if normalized in {a.strip().lower() for a in allow}:
+        return True
+    if entity_type == "LOCATION" and normalized in COMMON_GEO:
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -166,7 +318,7 @@ class RedactionUnavailable(RuntimeError):
 
 
 class RedactionLeak(RuntimeError):
-    """Verification found an original value surviving in the masked text — do not send."""
+    """Verification found a high-risk value surviving in the masked text — do not send."""
 
 
 @dataclass
@@ -186,21 +338,28 @@ class RedactionResult:
 # ---------------------------------------------------------------------------
 
 
-def _word_boundary_pattern(value: str) -> re.Pattern[str]:
-    r"""Case-insensitive whole-token match for ``value``.
+def _occurrence_pattern(value: str) -> re.Pattern[str]:
+    """Whole-token matcher: the value not flanked by alphanumerics.
 
-    `\b` is only a boundary next to a word character, so a value ending in punctuation
-    ("Acme Corp.") would never match with a naive `\b...\b`. Anchoring on lookarounds for
-    word characters handles both shapes.
+    Not `\\b...\\b` — that fails for values ending in punctuation ("Acme Corp."), because `\\b`
+    only asserts a boundary adjacent to a word character.
     """
-    return re.compile(rf"(?<!\w){re.escape(value)}(?!\w)", re.IGNORECASE)
+    return re.compile(r"(?<![A-Za-z0-9])" + re.escape(value) + r"(?![A-Za-z0-9])")
 
 
-def _should_mask(value: str) -> bool:
-    cleaned = value.strip()
-    if len(cleaned) < 2:
-        return False  # single characters are initials/artifacts; masking them shreds the text
-    return cleaned.lower().strip(".,;:") not in _STOPLIST
+def scan_structured_identifiers(text: str) -> list[str]:
+    """Independent fail-closed backstop: high-risk identifiers present in ``text``.
+
+    Deliberately independent of any mapping — it asserts a property of the OUTPUT, so it catches
+    masker bugs and identifiers no detection pass ever recorded. Placeholders (`PERSON_001`)
+    contain no '@', scheme, TLD or qualifying digit run, so they never self-trigger.
+    """
+    hits: list[str] = []
+    for kind, pattern in GUARD_PATTERNS:
+        match = pattern.search(text)
+        if match:
+            hits.append(f"{kind}:{match.group(0)[:60]}")
+    return hits
 
 
 def redact(
@@ -212,66 +371,74 @@ def redact(
 ) -> RedactionResult:
     """De-identify ``text``, returning the masked text plus the mapping needed to rehydrate.
 
-    ``known_entities`` are values the caller knows are sensitive (client and matter party names
-    pulled from the DB) — masked unconditionally, since they must not depend on the model
-    noticing them. ``allow_entities`` are values deliberately left in place: the firm's own
-    principals, whose names appear in every signature and whose masking would strip the voice the
-    drafter is trying to imitate without protecting a third party.
+    Both regex and NER run against the ORIGINAL text, so neither sees the other's placeholders —
+    running NER over partially-substituted text fragments names and leaks surnames. Spans are
+    collected, overlaps resolved with **regex winning over NER** (it is the more precise layer),
+    and only then is masking applied, longest value first.
 
-    Masking is applied longest-value-first so that "Acme Corporation Ltd" is consumed before
-    "Acme", which would otherwise leave a "[ORG_1] Corporation Ltd" fragment behind.
+    ``known_entities`` (client and party names from the OS tables) are masked unconditionally,
+    closing the residual where NER simply never tags a known client.
     """
     backend = backend or SpacyNerBackend()
-    if not backend.available():
-        if require_ner:
-            raise RedactionUnavailable(
-                f"NER backend {backend.name!r} unavailable — refusing to redact (D45 fail-closed)"
-            )
+    if not backend.available() and require_ner:
+        raise RedactionUnavailable(
+            f"NER backend {backend.name!r} unavailable — refusing to redact (D45 fail-closed)"
+        )
 
-    allowed = {a.strip().lower() for a in allow_entities if a.strip()}
+    # 1. Collect spans: (start, end, type, priority). Lower priority wins an overlap.
+    spans: list[tuple[int, int, str, int]] = []
+    for entity_type, pattern in MASK_PATTERNS:
+        for match in pattern.finditer(text):
+            if match.group(0).strip():
+                spans.append((match.start(), match.end(), entity_type, 0))
+    if backend.available():
+        for start, end, label in backend.entities(text):
+            spans.append((start, end, label, 1))
 
-    # Collect candidates: caller-known values, NER entities, then structured identifiers.
-    candidates: dict[str, str] = {}  # value -> label
-
-    for value in known_entities:
-        if _should_mask(value) and value.strip().lower() not in allowed:
-            candidates[value.strip()] = "PERSON"
-
-    for surface, label in backend.entities(text):
-        if label not in MASKED_LABELS:
+    # 2. Resolve overlaps greedily in document order, preferring regex, then longer spans.
+    spans.sort(key=lambda s: (s[0], s[3], -(s[1] - s[0])))
+    values: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    occupied_end = -1
+    for start, end, entity_type, _priority in spans:
+        if start < occupied_end:
             continue
-        value = surface.strip()
-        if not _should_mask(value) or value.lower() in allowed:
+        occupied_end = end
+        value = text[start:end].strip()
+        if not value or is_excluded(entity_type, value, allow_entities):
             continue
-        candidates.setdefault(value, label)
+        if value not in seen:
+            seen.add(value)
+            values.append((value, entity_type))
 
-    structured = scan_structured_identifiers(text)
-    for value, label in structured:
-        if value.strip().lower() in allowed:
-            continue
-        candidates[value.strip()] = label
+    # 3. Known entities — always masked, regardless of what the detectors found.
+    for known in known_entities:
+        candidate = known.strip()
+        if candidate and candidate not in seen and not is_excluded(
+            "CLIENT", candidate, allow_entities
+        ):
+            seen.add(candidate)
+            values.append((candidate, "CLIENT"))
 
-    # Apply masks, longest first so short values cannot fragment longer ones.
-    mapping: dict[str, str] = {}
-    counters: dict[str, int] = {}
+    # 4. Mask every occurrence, longest value first so a short value cannot fragment a longer
+    #    one. A placeholder is allocated only when the value is actually present, so a
+    #    known-entity absent from this text does not inflate the mapping or the counts.
+    values.sort(key=lambda vt: -len(vt[0]))
     masked = text
-    for value in sorted(candidates, key=len, reverse=True):
-        label = candidates[value]
-        # Same value seen under two labels (a client that is both ORG and a known entity) reuses
-        # one placeholder — two placeholders for one value would tell the model they differ.
-        existing = next((ph for ph, orig in mapping.items() if orig.lower() == value.lower()), None)
-        if existing is not None:
+    mapping: dict[str, str] = {}
+    by_value: dict[str, str] = {}
+    counters: dict[str, int] = {}
+    for value, entity_type in values:
+        pattern = _occurrence_pattern(value)
+        if not pattern.search(masked):
             continue
-        counters[label] = counters.get(label, 0) + 1
-        placeholder = f"[{label}_{counters[label]}]"
-        pattern = _word_boundary_pattern(value)
-        new_masked = pattern.sub(placeholder, masked)  # global-occurrence masking
-        if new_masked == masked:
-            # Value not actually present (a stale known-entity): don't burn a placeholder number.
-            counters[label] -= 1
-            continue
-        masked = new_masked
-        mapping[placeholder] = value
+        existing = by_value.get(value)
+        if existing is None:
+            counters[entity_type] = counters.get(entity_type, 0) + 1
+            existing = f"{entity_type}_{counters[entity_type]:03d}"
+            by_value[value] = existing
+            mapping[existing] = value
+        masked = pattern.sub(existing, masked)
 
     result = RedactionResult(
         masked=masked,
@@ -279,30 +446,32 @@ def redact(
         ref=f"red_{uuid.uuid4().hex}",
         backend=backend.name,
         entity_counts=dict(counters),
-        structured_hits=len(structured),
+        structured_hits=len(values),
     )
     result.leaks = verify_clean(result.masked, result.mapping)
     return result
 
 
 def verify_clean(masked: str, mapping: dict[str, str]) -> list[str]:
-    """Original values still present in ``masked``, as whole tokens.
+    """Everything that must stop the call, empty meaning clean. Two layers:
 
-    Boundary-aware for the reason in the module docstring: substring matching turned a person
-    named "Mark" into a leak report on the word "Marketing", and every false cancel is a user
-    learning to route around the safety control. Also re-runs the structured backstop, so an
-    identifier the NER path missed and the regex pass somehow skipped still surfaces here rather
-    than on the wire.
+    1. **Entity check** — did any mapped value survive as a whole token? Boundary-aware, matching
+       the masking pattern exactly, so "Mark" inside "Marketing" is not reported.
+    2. **Structured scan** — did any high-risk identifier survive at all, whether or not the
+       masker knew about it? This is the true fail-closed property: it fires on masker bugs.
     """
-    leaks = [value for value in mapping.values() if _word_boundary_pattern(value).search(masked)]
-    leaks.extend(value for value, _ in scan_structured_identifiers(masked))
-    return sorted(set(leaks))
+    leaks = [
+        value for value in sorted(mapping.values(), key=len, reverse=True)
+        if value and _occurrence_pattern(value).search(masked)
+    ]
+    leaks.extend(scan_structured_identifiers(masked))
+    return leaks
 
 
 def rehydrate(text: str, mapping: dict[str, str]) -> str:
     """Restore original values in the model's response (the inverse of `redact`).
 
-    Longest placeholder first so `[PERSON_1]` cannot be replaced inside `[PERSON_11]`.
+    Longest placeholder first so `PERSON_001` cannot be replaced inside `PERSON_0011`.
     """
     restored = text
     for placeholder in sorted(mapping, key=len, reverse=True):
@@ -311,8 +480,8 @@ def rehydrate(text: str, mapping: dict[str, str]) -> str:
 
 
 def ner_available(backend: NerBackend | None = None) -> bool:
-    """Whether entity recognition is usable right now. Ops surfaces this: an unavailable model
-    means every LLM-backed agent is failing closed, which is safe but silent without a signal."""
+    """Whether entity recognition is usable. Ops surfaces this: an unavailable model means every
+    LLM-backed agent is failing closed — safe, but silent without a signal."""
     return (backend or SpacyNerBackend()).available()
 
 
@@ -321,14 +490,12 @@ def ner_available(backend: NerBackend | None = None) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def record_redaction(
-    conn: psycopg.Connection, agent_name: str, result: RedactionResult,
-) -> str:
+def record_redaction(conn: psycopg.Connection, agent_name: str, result: RedactionResult) -> str:
     """Persist the audit row and return the reference the egress gate will demand.
 
-    Counts and the leak verdict only — never the mapping. An auditor asking "did redaction run
-    before this call, and did it come back clean?" is answered in full by this row; an auditor
-    asking "what were the real names?" is asking for the thing the service exists to withhold.
+    Counts and the leak verdict only — never the mapping. "Did redaction run before this call,
+    and did it come back clean?" is answered in full; "what were the real names?" is the thing
+    the service exists to withhold.
     """
     conn.execute(
         """
@@ -352,9 +519,9 @@ def redact_for_egress(
 ) -> RedactionResult:
     """Redact, audit, and refuse on leak — the entry point every LLM caller should use.
 
-    Bundling the three steps is what makes the safe path also the easy path: a caller who wants a
-    redaction ref (and without one the egress gate rejects them) cannot obtain it without having
-    passed verification.
+    Bundling the three steps makes the safe path the easy one: a caller needs a redaction ref
+    (the egress gate rejects them without it) and cannot obtain one without having passed
+    verification.
     """
     result = redact(text, backend=backend, known_entities=known_entities,
                     allow_entities=allow_entities, require_ner=True)
