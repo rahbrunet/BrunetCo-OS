@@ -671,36 +671,17 @@
         "title": "CountryRecord",
         "type": "object"
       },
-      "DecisionOut": {
+      "DecisionIn": {
         "properties": {
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "outcome": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Outcome"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
+          "approve": {
+            "title": "Approve",
+            "type": "boolean"
           }
         },
         "required": [
-          "id",
-          "status",
-          "outcome"
+          "approve"
         ],
-        "title": "DecisionOut",
+        "title": "DecisionIn",
         "type": "object"
       },
       "DocketTaskOut": {
@@ -859,6 +840,138 @@
           "created_at"
         ],
         "title": "DocketTaskOut",
+        "type": "object"
+      },
+      "DraftOut": {
+        "properties": {
+          "body_text": {
+            "title": "Body Text",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "discard_reasons": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discard Reasons"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "in_reply_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "In Reply To"
+          },
+          "matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Id"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "redaction_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Redaction Ref"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          }
+        },
+        "required": [
+          "id",
+          "in_reply_to",
+          "matter_id",
+          "subject",
+          "body_text",
+          "status",
+          "provider",
+          "model",
+          "redaction_ref",
+          "discard_reasons",
+          "created_at",
+          "decided_at"
+        ],
+        "title": "DraftOut",
         "type": "object"
       },
       "DutyOut": {
@@ -2016,6 +2129,75 @@
         "title": "MyDayItem",
         "type": "object"
       },
+      "PassageOut": {
+        "properties": {
+          "chunk_id": {
+            "format": "uuid",
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "extract": {
+            "title": "Extract",
+            "type": "string"
+          },
+          "heading_path": {
+            "title": "Heading Path",
+            "type": "string"
+          },
+          "is_superseded": {
+            "title": "Is Superseded",
+            "type": "boolean"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "type": "string"
+          },
+          "license_class": {
+            "title": "License Class",
+            "type": "string"
+          },
+          "may_quote": {
+            "title": "May Quote",
+            "type": "boolean"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "number"
+          },
+          "source_key": {
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chunk_id",
+          "citation",
+          "heading_path",
+          "extract",
+          "source_key",
+          "source_name",
+          "jurisdiction",
+          "edition_label",
+          "license_class",
+          "may_quote",
+          "is_superseded",
+          "rank"
+        ],
+        "title": "PassageOut",
+        "type": "object"
+      },
       "ProposalOut": {
         "properties": {
           "action_type": {
@@ -2249,6 +2431,53 @@
           "source_ref"
         ],
         "title": "ProvenanceOut",
+        "type": "object"
+      },
+      "RedactionEventOut": {
+        "properties": {
+          "agent_name": {
+            "title": "Agent Name",
+            "type": "string"
+          },
+          "backend": {
+            "title": "Backend",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entity_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Entity Counts",
+            "type": "object"
+          },
+          "leaks": {
+            "title": "Leaks",
+            "type": "integer"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "structured_hits": {
+            "title": "Structured Hits",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ref",
+          "agent_name",
+          "backend",
+          "entity_counts",
+          "structured_hits",
+          "leaks",
+          "created_at"
+        ],
+        "title": "RedactionEventOut",
         "type": "object"
       },
       "ReferenceIn": {
@@ -2543,6 +2772,79 @@
           "ref_date"
         ],
         "title": "SimulateRequest",
+        "type": "object"
+      },
+      "SourceOut": {
+        "properties": {
+          "authority_type": {
+            "title": "Authority Type",
+            "type": "string"
+          },
+          "edition_label": {
+            "title": "Edition Label",
+            "type": "string"
+          },
+          "is_stale": {
+            "title": "Is Stale",
+            "type": "boolean"
+          },
+          "is_superseded": {
+            "title": "Is Superseded",
+            "type": "boolean"
+          },
+          "jurisdiction": {
+            "title": "Jurisdiction",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "license_class": {
+            "title": "License Class",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "refresh_interval_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refresh Interval Days"
+          },
+          "refreshed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refreshed At"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "jurisdiction",
+          "authority_type",
+          "license_class",
+          "edition_label",
+          "refreshed_at",
+          "refresh_interval_days",
+          "is_superseded",
+          "is_stale"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "StateIn": {
@@ -2847,6 +3149,57 @@
           "stats"
         ],
         "title": "WatcherRunOut",
+        "type": "object"
+      },
+      "app__routes__drafting__DecisionOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "DecisionOut",
+        "type": "object"
+      },
+      "app__routes__orchestrator__DecisionOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "outcome"
+        ],
+        "title": "DecisionOut",
         "type": "object"
       }
     }
@@ -3180,7 +3533,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DecisionOut"
+                  "$ref": "#/components/schemas/app__routes__orchestrator__DecisionOut"
                 }
               }
             },
@@ -3223,7 +3576,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DecisionOut"
+                  "$ref": "#/components/schemas/app__routes__orchestrator__DecisionOut"
                 }
               }
             },
@@ -4077,6 +4430,169 @@
         ]
       }
     },
+    "/api/v1/drafts": {
+      "get": {
+        "description": "The caller's own drafts, newest first. Defaults to the pending queue \u2014 the discarded ones\nare kept for audit (they are evidence the validator fired) but are not daily reading.",
+        "operationId": "list_drafts_api_v1_drafts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "pending_review",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DraftOut"
+                  },
+                  "title": "Response List Drafts Api V1 Drafts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Drafts",
+        "tags": [
+          "drafting"
+        ]
+      }
+    },
+    "/api/v1/drafts/redaction-events": {
+      "get": {
+        "description": "D45 audit read: proof that redaction ran before each external call, and whether it came\nback clean. Counts only \u2014 the mapping is never persisted (migration 0015).",
+        "operationId": "list_redaction_events_api_v1_drafts_redaction_events_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agent_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agent Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RedactionEventOut"
+                  },
+                  "title": "Response List Redaction Events Api V1 Drafts Redaction Events Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Redaction Events",
+        "tags": [
+          "drafting"
+        ]
+      }
+    },
+    "/api/v1/drafts/{draft_id}/decision": {
+      "post": {
+        "description": "Approve or decline. A draft that is already decided (or belongs to someone else, which RLS\nrenders indistinguishable from absent) is a 404 \u2014 the same answer either way, so the endpoint\ncannot be used to probe for other users' drafts.",
+        "operationId": "decide_api_v1_drafts__draft_id__decision_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__routes__drafting__DecisionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "drafting"
+        ]
+      }
+    },
     "/api/v1/families": {
       "post": {
         "operationId": "create_family_api_v1_families_post",
@@ -4316,6 +4832,140 @@
         "summary": "Health",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/kb/search": {
+      "get": {
+        "description": "Ranked passages with citations.\n\n`include_superseded` defaults false \u2014 current law unless history is explicitly requested.",
+        "operationId": "search_api_v1_kb_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "jurisdiction",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Jurisdiction"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_superseded",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Superseded",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PassageOut"
+                  },
+                  "title": "Response Search Api V1 Kb Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Search",
+        "tags": [
+          "knowledge-base"
+        ]
+      }
+    },
+    "/api/v1/kb/sources": {
+      "get": {
+        "description": "The corpus registry with freshness state \u2014 the ops answer to \"is our grounding current?\".\n\nA source registered but never fetched reads as stale, which is the honest answer: an agent\ngrounding on an empty feed is worse off than one that knows it has nothing.",
+        "operationId": "list_sources_api_v1_kb_sources_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "stale_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Stale Only",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceOut"
+                  },
+                  "title": "Response List Sources Api V1 Kb Sources Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sources",
+        "tags": [
+          "knowledge-base"
         ]
       }
     },

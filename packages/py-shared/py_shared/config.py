@@ -29,5 +29,17 @@ class Settings(BaseSettings):
     bws_access_token: str = Field(default="")
     bws_project_id: str = Field(default="")
 
+    # LLM providers (D45). Bedrock runs the cross-region `us.` inference profile — no `ca.`
+    # profile exists for a current Claude model, so the residency posture is "US processing,
+    # sandboxed, not trained on, de-identified before egress", not Canadian residency.
+    llm_bedrock_model: str = Field(default="us.anthropic.claude-sonnet-4-6")
+    llm_bedrock_region: str = Field(default="us-east-1")
+    llm_fireworks_model: str = Field(default="accounts/fireworks/models/deepseek-v3")
+    # Gate stays CLOSED until no-training/zero-retention is in the signed Fireworks contract
+    # (D45 owner action). Closed = bulk tasks route to Bedrock: costlier, never less safe.
+    llm_fireworks_enabled: bool = Field(default=False)
+    # D45 fail-closed switch. Set to 0 only in a dev sandbox with no real client data present.
+    redact_require_ner: bool = Field(default=True)
+
 
 settings = Settings()
