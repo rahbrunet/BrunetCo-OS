@@ -352,17 +352,16 @@ def new_version(conn: psycopg.Connection, template_id: UUID, created_by: UUID) -
 
 
 def resolve_roles(conn: psycopg.Connection, roles: list[str]) -> dict[str, UUID | None]:
-    """Role → default assignee. WP 5.2 replaces this with workload-aware assignment; the seam is
-    here so that lands as one function swap rather than a change at every launch site."""
+    """Role → assignee at launch. Delegates to the WP 5.2 assignment engine, which is
+    workload-aware: it picks the least-loaded person who holds the capability, falling back to the
+    role's single default (0018), then to unassigned. Kept here as the launch site's stable entry
+    point so 5.2 was one delegation, not a change at every caller."""
     if not roles:
         return {}
-    rows = conn.execute(
-        "select role, user_id from app.role_assignments where role = any(%s)", (roles,)
-    ).fetchall()
-    mapping: dict[str, UUID | None] = {role: None for role in roles}
-    for role, user_id in rows:
-        mapping[role] = UUID(str(user_id)) if user_id else None
-    return mapping
+    # Imported lazily to keep the 5.1 module importable without the 5.2 layer present.
+    from py_shared.domain import assignment
+
+    return assignment.resolve_roles(conn, roles)
 
 
 def launch_project(

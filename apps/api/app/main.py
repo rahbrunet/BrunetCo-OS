@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 from app.mcp_server import build_mcp_app, mcp_session_lifespan
 from app.routes.audit import router as audit_router
+from app.routes.capacity import router as capacity_router
 from app.routes.conflicts import router as conflicts_router
 from app.routes.docketing import router as docketing_router
 from app.routes.drafting import router as drafting_router
@@ -82,6 +83,7 @@ app.include_router(audit_router)
 app.include_router(watchers_router)
 app.include_router(drafting_router)
 app.include_router(kb_router)
+app.include_router(capacity_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
 # Auth is a documented TODO tied to the D44 JWT bridge — see mcp_server.py.

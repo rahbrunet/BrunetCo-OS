@@ -293,6 +293,66 @@
         "title": "BulkLinkOut",
         "type": "object"
       },
+      "CapacityRow": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "due_soon": {
+            "title": "Due Soon",
+            "type": "integer"
+          },
+          "in_progress": {
+            "title": "In Progress",
+            "type": "integer"
+          },
+          "next_due": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Due"
+          },
+          "open_load": {
+            "title": "Open Load",
+            "type": "integer"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "integer"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name",
+          "open_load",
+          "in_progress",
+          "overdue",
+          "due_soon",
+          "next_due",
+          "roles"
+        ],
+        "title": "CapacityRow",
+        "type": "object"
+      },
       "CheckLogOut": {
         "properties": {
           "check_type": {
@@ -1016,6 +1076,68 @@
           "definition"
         ],
         "title": "EditRequest",
+        "type": "object"
+      },
+      "EscalationOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "escalated_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalated To"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          },
+          "work_item_id": {
+            "format": "uuid",
+            "title": "Work Item Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "work_item_id",
+          "escalated_to",
+          "reason",
+          "due_date",
+          "created_at",
+          "resolved"
+        ],
+        "title": "EscalationOut",
         "type": "object"
       },
       "FamilyCreate": {
@@ -2433,6 +2555,38 @@
         "title": "ProvenanceOut",
         "type": "object"
       },
+      "ReassignIn": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "to_user": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To User"
+          }
+        },
+        "required": [
+          "to_user"
+        ],
+        "title": "ReassignIn",
+        "type": "object"
+      },
       "RedactionEventOut": {
         "properties": {
           "agent_name": {
@@ -2865,6 +3019,47 @@
           "citation_state"
         ],
         "title": "StateIn",
+        "type": "object"
+      },
+      "SuggestionOut": {
+        "properties": {
+          "at_capacity": {
+            "title": "At Capacity",
+            "type": "boolean"
+          },
+          "avg_cycle_days": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Cycle Days"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "open_load": {
+            "title": "Open Load",
+            "type": "integer"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name",
+          "open_load",
+          "at_capacity",
+          "avg_cycle_days"
+        ],
+        "title": "SuggestionOut",
         "type": "object"
       },
       "TriggerRequest": {
@@ -3718,6 +3913,237 @@
         "summary": "Audit",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/capacity/board": {
+      "get": {
+        "description": "One row per active person with their live load \u2014 the board that replaces the Word lists.",
+        "operationId": "capacity_board_api_v1_capacity_board_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapacityRow"
+                  },
+                  "title": "Response Capacity Board Api V1 Capacity Board Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Capacity Board",
+        "tags": [
+          "capacity"
+        ]
+      }
+    },
+    "/api/v1/capacity/escalations": {
+      "get": {
+        "description": "SLA-breach escalations visible to the caller (by matter visibility).",
+        "operationId": "list_escalations_api_v1_capacity_escalations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "open_only",
+            "required": false,
+            "schema": {
+              "default": true,
+              "title": "Open Only",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EscalationOut"
+                  },
+                  "title": "Response List Escalations Api V1 Capacity Escalations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Escalations",
+        "tags": [
+          "capacity"
+        ]
+      }
+    },
+    "/api/v1/capacity/escalations/{escalation_id}/resolve": {
+      "post": {
+        "description": "Close an escalation once the underlying breach is handled.",
+        "operationId": "resolve_escalation_api_v1_capacity_escalations__escalation_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Escalation",
+        "tags": [
+          "capacity"
+        ]
+      }
+    },
+    "/api/v1/capacity/suggest": {
+      "get": {
+        "description": "Ranked assignment suggestions for a role, optionally for a specific task type.",
+        "operationId": "suggest_api_v1_capacity_suggest_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "title": "Role",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "task_ref",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task Ref"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionOut"
+                  },
+                  "title": "Response Suggest Api V1 Capacity Suggest Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Suggest",
+        "tags": [
+          "capacity"
+        ]
+      }
+    },
+    "/api/v1/capacity/work-items/{item_id}/reassign": {
+      "post": {
+        "description": "Drag-to-reassign, logged. A move to an item the caller cannot see is a 404 (RLS renders it\nindistinguishable from absent), so the endpoint cannot probe for hidden items.",
+        "operationId": "reassign_api_v1_capacity_work_items__item_id__reassign_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reassign",
+        "tags": [
+          "capacity"
         ]
       }
     },
