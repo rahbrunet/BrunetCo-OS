@@ -25,6 +25,7 @@ from app.routes.drafting import router as drafting_router
 from app.routes.families import router as families_router
 from app.routes.knowledge_base import router as kb_router
 from app.routes.matters import router as matters_router
+from app.routes.micro_requests import router as micro_requests_router
 from app.routes.my_day import router as my_day_router
 from app.routes.orchestrator import router as orchestrator_router
 from app.routes.permissions_admin import me_router
@@ -86,6 +87,7 @@ app.include_router(drafting_router)
 app.include_router(kb_router)
 app.include_router(capacity_router)
 app.include_router(boards_router)
+app.include_router(micro_requests_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
 # Auth is a documented TODO tied to the D44 JWT bridge — see mcp_server.py.

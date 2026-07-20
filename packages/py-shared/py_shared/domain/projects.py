@@ -446,12 +446,11 @@ def complete_work_item(conn: psycopg.Connection, item_id: UUID) -> list[UUID]:
     only changes what is *reachable*, never what exists. That keeps the project plan stable and
     reviewable from the moment it starts.
     """
-    blocked = conn.execute(
-        "select 1 from app.work_item_dependencies d join app.work_items w on w.id = d.depends_on_id"
-        " where d.work_item_id = %s and w.status not in ('done', 'cancelled')",
-        (item_id,),
-    ).fetchone()
-    if blocked is not None:
+    # Use the centralized blocking predicate so every block SOURCE is honoured — incomplete
+    # predecessors (5.1) and open micro-requests (5.4). An inline dependency-only check here would
+    # let a task under review be completed out from under the reviewer.
+    blocked = conn.execute("select app.work_item_is_blocked(%s)", (item_id,)).fetchone()
+    if blocked is not None and blocked[0]:
         raise ValueError("cannot complete a blocked work item")
 
     updated = conn.execute(
