@@ -850,6 +850,61 @@
         "title": "CountryRecord",
         "type": "object"
       },
+      "CreateIn": {
+        "properties": {
+          "assignee_id": {
+            "format": "uuid",
+            "title": "Assignee Id",
+            "type": "string"
+          },
+          "parent_document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Document Id"
+          },
+          "parent_work_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Work Item Id"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "sla_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 4,
+            "title": "Sla Hours"
+          }
+        },
+        "required": [
+          "assignee_id",
+          "prompt"
+        ],
+        "title": "CreateIn",
+        "type": "object"
+      },
       "DecisionIn": {
         "properties": {
           "approve": {
@@ -2299,6 +2354,50 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MessageIn": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "title": "MessageIn",
+        "type": "object"
+      },
+      "MessageOut": {
+        "properties": {
+          "author_id": {
+            "format": "uuid",
+            "title": "Author Id",
+            "type": "string"
+          },
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "author_id",
+          "body",
+          "created_at"
+        ],
+        "title": "MessageOut",
+        "type": "object"
+      },
       "MyDayItem": {
         "properties": {
           "deadline_type": {
@@ -2855,6 +2954,37 @@
           "created"
         ],
         "title": "ReferenceOut",
+        "type": "object"
+      },
+      "RequestOut": {
+        "properties": {
+          "assignee_id": {
+            "format": "uuid",
+            "title": "Assignee Id",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "requester_id": {
+            "format": "uuid",
+            "title": "Requester Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "assignee_id",
+          "requester_id"
+        ],
+        "title": "RequestOut",
         "type": "object"
       },
       "RuleDetailOut": {
@@ -5903,6 +6033,207 @@
         "summary": "Me",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/api/v1/micro-requests": {
+      "post": {
+        "operationId": "create_api_v1_micro_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "micro-requests"
+        ]
+      }
+    },
+    "/api/v1/micro-requests/mine": {
+      "get": {
+        "description": "The caller's outstanding requests as assignee \u2014 the intra-day queue.",
+        "operationId": "mine_api_v1_micro_requests_mine_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RequestOut"
+                  },
+                  "title": "Response Mine Api V1 Micro Requests Mine Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Mine",
+        "tags": [
+          "micro-requests"
+        ]
+      }
+    },
+    "/api/v1/micro-requests/{request_id}/messages": {
+      "get": {
+        "operationId": "messages_api_v1_micro_requests__request_id__messages_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MessageOut"
+                  },
+                  "title": "Response Messages Api V1 Micro Requests  Request Id  Messages Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Messages",
+        "tags": [
+          "micro-requests"
+        ]
+      },
+      "post": {
+        "operationId": "post_message_api_v1_micro_requests__request_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Post Message",
+        "tags": [
+          "micro-requests"
+        ]
+      }
+    },
+    "/api/v1/micro-requests/{request_id}/resolve": {
+      "post": {
+        "operationId": "resolve_api_v1_micro_requests__request_id__resolve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve",
+        "tags": [
+          "micro-requests"
         ]
       }
     },
