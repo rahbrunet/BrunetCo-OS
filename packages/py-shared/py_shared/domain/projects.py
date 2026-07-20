@@ -389,8 +389,57 @@ def launch_project(
         raise ValueError(f"template {key!r} v{version} is {status}, not published")
 
     tasks, edges = load_template(conn, template_id)
+    return _instantiate_plan(
+        conn, name, tasks, edges, created_by, start, holidays or {},
+        matter_id=matter_id, family_id=family_id,
+        template_id=template_id, template_key=key, template_version=version,
+    )
+
+
+def launch_adhoc_project(
+    conn: psycopg.Connection,
+    name: str,
+    tasks: list[TemplateTask],
+    edges: list[TemplateEdge],
+    created_by: UUID,
+    start: date,
+    holidays: dict[date, str] | None = None,
+    matter_id: UUID | None = None,
+    family_id: UUID | None = None,
+) -> UUID:
+    """Launch an UNSCRIPTED project (WP 5.6): a plan built ad-hoc — by hand or drafted by the
+    orchestrator — rather than instantiated from a stored template.
+
+    Validated by the same rules as a template (a cycle is just as fatal whether it came from a
+    saved template or a hand-drawn plan), scheduled and routed the same way. The project row
+    records no template_id/key/version — this project follows a one-off plan, and saying so
+    honestly is better than inventing a phantom template to point at.
+    """
     validate_template(tasks, edges)
-    schedule = compute_schedule(tasks, edges, start, holidays or {})
+    return _instantiate_plan(
+        conn, name, tasks, edges, created_by, start, holidays or {},
+        matter_id=matter_id, family_id=family_id,
+    )
+
+
+def _instantiate_plan(
+    conn: psycopg.Connection,
+    name: str,
+    tasks: list[TemplateTask],
+    edges: list[TemplateEdge],
+    created_by: UUID,
+    start: date,
+    holidays: dict[date, str],
+    matter_id: UUID | None = None,
+    family_id: UUID | None = None,
+    template_id: UUID | None = None,
+    template_key: str | None = None,
+    template_version: int | None = None,
+) -> UUID:
+    """Shared launch core: schedule a validated plan, create the project and its chained,
+    routed work items. Used by both the stored-template and ad-hoc paths so the two cannot
+    drift in how they schedule or route."""
+    schedule = compute_schedule(tasks, edges, start, holidays)
     assignees = resolve_roles(conn, sorted({t.role for t in tasks if t.role}))
 
     row = conn.execute(
@@ -400,8 +449,8 @@ def launch_project(
            started_on, target_end, created_by)
         values (%s, %s, %s, %s, %s, %s, %s, %s, %s) returning id
         """,
-        (name, matter_id, family_id, template_id, key, version, start, schedule.target_end,
-         created_by),
+        (name, matter_id, family_id, template_id, template_key, template_version, start,
+         schedule.target_end, created_by),
     ).fetchone()
     assert row is not None
     project_id = UUID(str(row[0]))
