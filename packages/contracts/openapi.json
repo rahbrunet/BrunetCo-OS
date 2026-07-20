@@ -1761,6 +1761,30 @@
         "title": "ImportOut",
         "type": "object"
       },
+      "IssueTransitionIn": {
+        "properties": {
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution"
+          },
+          "to_status": {
+            "title": "To Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to_status"
+        ],
+        "title": "IssueTransitionIn",
+        "type": "object"
+      },
       "LaunchIn": {
         "properties": {
           "edges": {
@@ -3347,6 +3371,65 @@
         "title": "RuleOut",
         "type": "object"
       },
+      "ScorecardRow": {
+        "properties": {
+          "goal": {
+            "title": "Goal",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "rag": {
+            "title": "Rag",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "owner_id",
+          "goal",
+          "unit",
+          "value",
+          "rag"
+        ],
+        "title": "ScorecardRow",
+        "type": "object"
+      },
       "SimulateRequest": {
         "properties": {
           "matter_id": {
@@ -3499,6 +3582,34 @@
           "avg_cycle_days"
         ],
         "title": "SuggestionOut",
+        "type": "object"
+      },
+      "TodoScoreOut": {
+        "properties": {
+          "committed": {
+            "title": "Committed",
+            "type": "integer"
+          },
+          "done": {
+            "title": "Done",
+            "type": "integer"
+          },
+          "meets_target": {
+            "title": "Meets Target",
+            "type": "boolean"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "number"
+          }
+        },
+        "required": [
+          "committed",
+          "done",
+          "rate",
+          "meets_target"
+        ],
+        "title": "TodoScoreOut",
         "type": "object"
       },
       "TriggerRequest": {
@@ -5679,6 +5790,137 @@
         "summary": "Decide",
         "tags": [
           "drafting"
+        ]
+      }
+    },
+    "/api/v1/eos/issues/{issue_id}/advance": {
+      "post": {
+        "description": "Move an issue through Identify \u2192 Discuss \u2192 Solve (or drop it). Enforces the lifecycle.",
+        "operationId": "advance_issue_api_v1_eos_issues__issue_id__advance_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "issue_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Issue Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueTransitionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Advance Issue",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
+    "/api/v1/eos/scorecard": {
+      "get": {
+        "description": "The current scorecard with each measurable's latest value and RAG colour.",
+        "operationId": "scorecard_api_v1_eos_scorecard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScorecardRow"
+                  },
+                  "title": "Response Scorecard Api V1 Eos Scorecard Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Scorecard",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
+    "/api/v1/eos/todos/score": {
+      "get": {
+        "description": "The caller's own To-Do completion against the EOS 90% target.",
+        "operationId": "todo_score_api_v1_eos_todos_score_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoScoreOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Todo Score",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
+    "/api/v1/eos/todos/{todo_id}/complete": {
+      "post": {
+        "operationId": "complete_todo_api_v1_eos_todos__todo_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "todo_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Todo Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Todo",
+        "tags": [
+          "eos"
         ]
       }
     },
