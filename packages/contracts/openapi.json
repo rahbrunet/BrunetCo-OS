@@ -1076,6 +1076,19 @@
         "title": "DocketTaskOut",
         "type": "object"
       },
+      "DraftIn": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description"
+        ],
+        "title": "DraftIn",
+        "type": "object"
+      },
       "DraftOut": {
         "properties": {
           "body_text": {
@@ -1746,6 +1759,79 @@
           "total_rows"
         ],
         "title": "ImportOut",
+        "type": "object"
+      },
+      "LaunchIn": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/PlanEdgeIO"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "family_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Id"
+          },
+          "matter_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matter Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlanTaskIO"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "tasks",
+          "edges",
+          "start"
+        ],
+        "title": "LaunchIn",
+        "type": "object"
+      },
+      "LaunchOut": {
+        "properties": {
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "title": "LaunchOut",
         "type": "object"
       },
       "LinkIn": {
@@ -2548,6 +2634,98 @@
           "rank"
         ],
         "title": "PassageOut",
+        "type": "object"
+      },
+      "PlanEdgeIO": {
+        "properties": {
+          "depends_on_ref": {
+            "title": "Depends On Ref",
+            "type": "string"
+          },
+          "task_ref": {
+            "title": "Task Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_ref",
+          "depends_on_ref"
+        ],
+        "title": "PlanEdgeIO",
+        "type": "object"
+      },
+      "PlanOut": {
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/PlanEdgeIO"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/PlanTaskIO"
+            },
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tasks",
+          "edges"
+        ],
+        "title": "PlanOut",
+        "type": "object"
+      },
+      "PlanTaskIO": {
+        "properties": {
+          "cycle_days": {
+            "default": 1,
+            "title": "Cycle Days",
+            "type": "integer"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "start_offset_days": {
+            "default": 0,
+            "title": "Start Offset Days",
+            "type": "integer"
+          },
+          "task_ref": {
+            "title": "Task Ref",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_ref",
+          "title"
+        ],
+        "title": "PlanTaskIO",
         "type": "object"
       },
       "ProposalOut": {
@@ -6649,6 +6827,90 @@
         "summary": "Add Reference",
         "tags": [
           "prior-art"
+        ]
+      }
+    },
+    "/api/v1/projects/draft-plan": {
+      "post": {
+        "description": "Draft an editable plan from a description. Creates nothing; the user edits, then launches.",
+        "operationId": "draft_plan_api_v1_projects_draft_plan_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Draft Plan",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/launch-adhoc": {
+      "post": {
+        "description": "Launch an edited plan into a real chained project.",
+        "operationId": "launch_adhoc_api_v1_projects_launch_adhoc_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaunchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LaunchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Launch Adhoc",
+        "tags": [
+          "projects"
         ]
       }
     },
