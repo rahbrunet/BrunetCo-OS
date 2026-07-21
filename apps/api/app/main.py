@@ -35,6 +35,7 @@ from app.routes.permissions_admin import router as permissions_router
 from app.routes.prior_art import router as prior_art_router
 from app.routes.projects import router as projects_router
 from app.routes.reminders import router as reminders_router
+from app.routes.reports import router as reports_router
 from app.routes.rules import router as rules_router
 from app.routes.watchers import router as watchers_router
 
@@ -96,6 +97,7 @@ app.include_router(projects_router)
 app.include_router(eos_router)
 app.include_router(eos_reports_router)
 app.include_router(reminders_router)
+app.include_router(reports_router)
 
 # MCP surface from day one (design review §4/§7.5), derived from this same app.
 # Auth is a documented TODO tied to the D44 JWT bridge — see mcp_server.py.
