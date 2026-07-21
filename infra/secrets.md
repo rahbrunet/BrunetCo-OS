@@ -9,6 +9,24 @@ No secret material lives in the repo or in committed env files. Production secre
 `BWS_PROJECT_ID` are present, it pulls every secret in the project into the environment (values are
 never logged). Otherwise it falls back to `.env.local`.
 
+## Runtime broker slots
+
+Agent-facing secrets are *not* injected into the environment. They are fetched one at a time
+through the credential broker (`py_shared.orchestrator.fetch_secret`), which checks the agent's
+`ops.agents.allowed_secret_slots` allow-list first and only then calls the fetcher. In production
+that fetcher is `py_shared.secrets.BitwardenSecretFetcher`; with no `BWS_ACCESS_TOKEN` /
+`BWS_PROJECT_ID` set it degrades to a `dev-secret::<slot>` placeholder so the authorization path
+stays testable without a real credential.
+
+Slot names are the Bitwarden secret keys verbatim, namespaced by agent domain:
+
+| Slot | Agent |
+|---|---|
+| `cipo/twocaptcha-api-key` | `cipo-watcher` (WP 6.2) |
+
+The project listing is cached per process; a rotated value is picked up on restart (or via
+`BitwardenSecretFetcher.refresh()`), and a slot added after startup resolves on first miss.
+
 ## Bitwarden project layout
 
 One project **`brunetco-os`** (add `-staging` / `-prod` variants as environments appear). Secret

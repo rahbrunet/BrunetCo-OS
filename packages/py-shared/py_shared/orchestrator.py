@@ -7,8 +7,8 @@ Four concerns, kept small and testable:
   * egress gate   — a single fail-closed check for data leaving the OS. LLM egress MUST carry a
                     redaction reference (D45): no redaction ref → refused, never sent unmasked.
   * credential broker — fetch a secret slot only if the agent is registered for it (deny + raise
-                    otherwise). The real Bitwarden fetch lands with the secrets integration; this
-                    enforces the allow-list and is the single choke point.
+                    otherwise), then resolve it through Bitwarden (``py_shared.secrets``) when
+                    configured. This is the single choke point for every runtime secret.
 
 Pure helpers (egress_check, broker_authorize) are unit-tested with no DB; the DB-touching pieces
 run on a caller-supplied connection so the approval queue is RLS-scoped (D44) exactly like every
@@ -94,13 +94,17 @@ def fetch_secret(
     fetcher: Callable[[str], str] | None = None,
 ) -> str:
     """Broker a runtime secret fetch (D10). Denies slots outside the agent's allow-list; the actual
-    value comes from ``fetcher`` (Bitwarden in prod) — defaulting to a dev placeholder so nothing
-    real is required to exercise the path. Never logs the value."""
+    value comes from ``fetcher`` — by default Bitwarden when BWS_ACCESS_TOKEN + BWS_PROJECT_ID are
+    configured, otherwise a dev placeholder so the path is exercisable with no real credential.
+    Never logs the value."""
+    from py_shared.secrets import default_secret_fetcher
+
     agent = get_agent(conn, agent_name)
     if agent is None:
         raise CredentialDenied(f"unknown agent {agent_name!r}")
     broker_authorize(agent.allowed_secret_slots, slot)
-    return (fetcher or (lambda s: f"dev-secret::{s}"))(slot)
+    resolve = fetcher or default_secret_fetcher() or (lambda s: f"dev-secret::{s}")
+    return resolve(slot)
 
 
 # ---------------------------------------------------------------------------
