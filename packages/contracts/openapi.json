@@ -1785,6 +1785,90 @@
         "title": "IssueTransitionIn",
         "type": "object"
       },
+      "L10PackOut": {
+        "properties": {
+          "aging_wip": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Aging Wip",
+            "type": "array"
+          },
+          "critical_deadlines": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Critical Deadlines",
+            "type": "array"
+          },
+          "headline": {
+            "additionalProperties": true,
+            "title": "Headline",
+            "type": "object"
+          },
+          "open_issues": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Open Issues",
+            "type": "array"
+          },
+          "overdue_by_owner": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Overdue By Owner",
+            "type": "array"
+          },
+          "quarter": {
+            "title": "Quarter",
+            "type": "string"
+          },
+          "rocks": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Rocks",
+            "type": "object"
+          },
+          "scorecard": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Scorecard",
+            "type": "array"
+          },
+          "todo_completion": {
+            "additionalProperties": true,
+            "title": "Todo Completion",
+            "type": "object"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "week_start",
+          "quarter",
+          "headline",
+          "scorecard",
+          "rocks",
+          "todo_completion",
+          "overdue_by_owner",
+          "aging_wip",
+          "critical_deadlines",
+          "open_issues"
+        ],
+        "title": "L10PackOut",
+        "type": "object"
+      },
       "LaunchIn": {
         "properties": {
           "edges": {
@@ -2591,6 +2675,65 @@
         "title": "MyDayItem",
         "type": "object"
       },
+      "OneOnOneOut": {
+        "properties": {
+          "measurables": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Measurables",
+            "type": "array"
+          },
+          "open_items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Open Items",
+            "type": "array"
+          },
+          "request_turnaround": {
+            "additionalProperties": true,
+            "title": "Request Turnaround",
+            "type": "object"
+          },
+          "rocks": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Rocks",
+            "type": "array"
+          },
+          "todo_score": {
+            "additionalProperties": true,
+            "title": "Todo Score",
+            "type": "object"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          },
+          "week_start": {
+            "format": "date",
+            "title": "Week Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "week_start",
+          "measurables",
+          "rocks",
+          "todo_score",
+          "request_turnaround",
+          "open_items"
+        ],
+        "title": "OneOnOneOut",
+        "type": "object"
+      },
       "PassageOut": {
         "properties": {
           "chunk_id": {
@@ -2750,6 +2893,24 @@
           "title"
         ],
         "title": "PlanTaskIO",
+        "type": "object"
+      },
+      "PopulateOut": {
+        "properties": {
+          "no_data": {
+            "title": "No Data",
+            "type": "integer"
+          },
+          "written": {
+            "title": "Written",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "written",
+          "no_data"
+        ],
+        "title": "PopulateOut",
         "type": "object"
       },
       "ProposalOut": {
@@ -5840,6 +6001,109 @@
         ]
       }
     },
+    "/api/v1/eos/l10-pack": {
+      "get": {
+        "description": "The weekly L10 pack, generated from live data.",
+        "operationId": "l10_pack_api_v1_eos_l10_pack_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "quarter",
+            "required": true,
+            "schema": {
+              "title": "Quarter",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/L10PackOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "L10 Pack",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
+    "/api/v1/eos/one-on-one": {
+      "get": {
+        "description": "A person's 1-on-1 report. Defaults to the caller's own.",
+        "operationId": "one_on_one_api_v1_eos_one_on_one_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "quarter",
+            "required": true,
+            "schema": {
+              "title": "Quarter",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "user_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneOnOneOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One On One",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
     "/api/v1/eos/scorecard": {
       "get": {
         "description": "The current scorecard with each measurable's latest value and RAG colour.",
@@ -5861,6 +6125,28 @@
           }
         },
         "summary": "Scorecard",
+        "tags": [
+          "eos"
+        ]
+      }
+    },
+    "/api/v1/eos/scorecard/populate": {
+      "post": {
+        "description": "Recompute every auto-populated measurable for the current week. Idempotent \u2014 safe to run\nnightly and again on demand before a meeting.",
+        "operationId": "populate_api_v1_eos_scorecard_populate_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PopulateOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Populate",
         "tags": [
           "eos"
         ]
