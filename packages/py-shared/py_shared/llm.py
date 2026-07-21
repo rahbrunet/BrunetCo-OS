@@ -47,6 +47,7 @@ TASK_SENSITIVITY: dict[str, str] = {
     "draft_reply": SENSITIVE,       # A9 — a client reads the output
     "oa_report_section": SENSITIVE,  # A11
     "plan_project": SENSITIVE,       # 5.6 — orchestrator drafts a project plan from a description
+    "draft_rule": SENSITIVE,         # 6.6 — A2 drafts a docket rule; a wrong rule mis-dates matters
     "quote_intent": BULK,            # A10 — gate a detector, discard the text
     "classify_intent": BULK,         # A8
     "classify_matter": BULK,         # M5 auto-filing suggestions
