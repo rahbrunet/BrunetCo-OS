@@ -40,6 +40,30 @@
         "title": "AgentOut",
         "type": "object"
       },
+      "AggregateIn": {
+        "properties": {
+          "column": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "func": {
+            "title": "Func",
+            "type": "string"
+          }
+        },
+        "required": [
+          "func"
+        ],
+        "title": "AggregateIn",
+        "type": "object"
+      },
       "AnnuityRequest": {
         "properties": {
           "matter_id": {
@@ -903,6 +927,65 @@
           "prompt"
         ],
         "title": "CreateIn",
+        "type": "object"
+      },
+      "DefinitionIn": {
+        "properties": {
+          "aggregates": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AggregateIn"
+            },
+            "title": "Aggregates",
+            "type": "array"
+          },
+          "columns": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "dataset": {
+            "title": "Dataset",
+            "type": "string"
+          },
+          "filters": {
+            "default": [],
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Filters",
+            "type": "array"
+          },
+          "group_by": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Group By",
+            "type": "array"
+          },
+          "limit": {
+            "default": 1000,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "sort": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Sort",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dataset"
+        ],
+        "title": "DefinitionIn",
         "type": "object"
       },
       "DocketTaskOut": {
@@ -3350,6 +3433,101 @@
         "title": "ReferenceOut",
         "type": "object"
       },
+      "ReportIn": {
+        "properties": {
+          "definition": {
+            "$ref": "#/components/schemas/DefinitionIn"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "schedule_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule Frequency"
+          },
+          "schedule_hour": {
+            "default": 7,
+            "title": "Schedule Hour",
+            "type": "integer"
+          },
+          "shared": {
+            "default": false,
+            "title": "Shared",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "definition"
+        ],
+        "title": "ReportIn",
+        "type": "object"
+      },
+      "ReportOut": {
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "dataset_key": {
+            "title": "Dataset Key",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner_id": {
+            "format": "uuid",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "schedule_frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schedule Frequency"
+          },
+          "schedule_hour": {
+            "title": "Schedule Hour",
+            "type": "integer"
+          },
+          "shared": {
+            "title": "Shared",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "dataset_key",
+          "owner_id",
+          "shared",
+          "schedule_frequency",
+          "schedule_hour",
+          "active"
+        ],
+        "title": "ReportOut",
+        "type": "object"
+      },
       "RequestOut": {
         "properties": {
           "assignee_id": {
@@ -3561,6 +3739,84 @@
           "summary"
         ],
         "title": "RuleOut",
+        "type": "object"
+      },
+      "RunLogOut": {
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "run_at": {
+            "format": "date-time",
+            "title": "Run At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "run_at",
+          "row_count",
+          "status",
+          "error"
+        ],
+        "title": "RunLogOut",
+        "type": "object"
+      },
+      "RunOut": {
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Columns",
+            "type": "array"
+          },
+          "row_count": {
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "columns",
+          "row_count",
+          "rows"
+        ],
+        "title": "RunOut",
         "type": "object"
       },
       "RungIn": {
@@ -8184,6 +8440,263 @@
         "summary": "Sweep",
         "tags": [
           "reminders"
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "description": "The caller's own reports plus anything shared with the firm.",
+        "operationId": "index_api_v1_reports_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportOut"
+                  },
+                  "title": "Response Index Api V1 Reports Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Index",
+        "tags": [
+          "reports"
+        ]
+      },
+      "post": {
+        "operationId": "create_api_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/datasets": {
+      "get": {
+        "description": "What a report may query. There is nothing outside this registry.",
+        "operationId": "datasets_api_v1_reports_datasets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response Datasets Api V1 Reports Datasets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Datasets",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/scheduled/due": {
+      "get": {
+        "description": "Scheduled reports whose window has come \u00e2\u20ac\u201d the runner's work list.",
+        "operationId": "due_api_v1_reports_scheduled_due_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "title": "Response Due Api V1 Reports Scheduled Due Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Due",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/{report_id}/export": {
+      "get": {
+        "description": "A run rendered as a spreadsheet. Email/SFTP delivery lands with WP 4.3.",
+        "operationId": "export_api_v1_reports__report_id__export_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Export Api V1 Reports  Report Id  Export Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/{report_id}/run": {
+      "post": {
+        "operationId": "run_api_v1_reports__report_id__run_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/{report_id}/runs": {
+      "get": {
+        "operationId": "runs_api_v1_reports__report_id__runs_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunLogOut"
+                  },
+                  "title": "Response Runs Api V1 Reports  Report Id  Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Runs",
+        "tags": [
+          "reports"
         ]
       }
     },
