@@ -905,19 +905,6 @@
         "title": "CreateIn",
         "type": "object"
       },
-      "DecisionIn": {
-        "properties": {
-          "approve": {
-            "title": "Approve",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "approve"
-        ],
-        "title": "DecisionIn",
-        "type": "object"
-      },
       "DocketTaskOut": {
         "description": "A docket-view row: the task plus the matter/family context views need (M1-R5).",
         "properties": {
@@ -1263,68 +1250,6 @@
           "definition"
         ],
         "title": "EditRequest",
-        "type": "object"
-      },
-      "EscalationOut": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "due_date": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Due Date"
-          },
-          "escalated_to": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Escalated To"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "reason": {
-            "title": "Reason",
-            "type": "string"
-          },
-          "resolved": {
-            "title": "Resolved",
-            "type": "boolean"
-          },
-          "work_item_id": {
-            "format": "uuid",
-            "title": "Work Item Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "work_item_id",
-          "escalated_to",
-          "reason",
-          "due_date",
-          "created_at",
-          "resolved"
-        ],
-        "title": "EscalationOut",
         "type": "object"
       },
       "FamilyCreate": {
@@ -1691,6 +1616,19 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HaltIn": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "HaltIn",
+        "type": "object"
+      },
       "HealthResponse": {
         "description": "Typed health payload \u2014 consumed end-to-end by the SPA to prove the contract loop.",
         "properties": {
@@ -1867,6 +1805,99 @@
           "open_issues"
         ],
         "title": "L10PackOut",
+        "type": "object"
+      },
+      "LadderIn": {
+        "properties": {
+          "jurisdiction_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction Code"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rights_preserving": {
+            "default": false,
+            "title": "Rights Preserving",
+            "type": "boolean"
+          },
+          "rungs": {
+            "items": {
+              "$ref": "#/components/schemas/RungIn"
+            },
+            "title": "Rungs",
+            "type": "array"
+          },
+          "task_type": {
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "task_type",
+          "rungs"
+        ],
+        "title": "LadderIn",
+        "type": "object"
+      },
+      "LadderOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "jurisdiction_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction Code"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rights_preserving": {
+            "title": "Rights Preserving",
+            "type": "boolean"
+          },
+          "task_type": {
+            "title": "Task Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "task_type",
+          "jurisdiction_code",
+          "rights_preserving"
+        ],
+        "title": "LadderOut",
         "type": "object"
       },
       "LaunchIn": {
@@ -3532,6 +3563,114 @@
         "title": "RuleOut",
         "type": "object"
       },
+      "RungIn": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "offset_days": {
+            "title": "Offset Days",
+            "type": "integer"
+          },
+          "step_no": {
+            "title": "Step No",
+            "type": "integer"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step_no",
+          "offset_days",
+          "label",
+          "subject",
+          "body"
+        ],
+        "title": "RungIn",
+        "type": "object"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "anchor_date": {
+            "format": "date",
+            "title": "Anchor Date",
+            "type": "string"
+          },
+          "halted_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Halted Reason"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ladder_id": {
+            "format": "uuid",
+            "title": "Ladder Id",
+            "type": "string"
+          },
+          "matter_id": {
+            "format": "uuid",
+            "title": "Matter Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "work_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Item Id"
+          }
+        },
+        "required": [
+          "id",
+          "ladder_id",
+          "matter_id",
+          "task_id",
+          "work_item_id",
+          "anchor_date",
+          "status",
+          "halted_reason"
+        ],
+        "title": "ScheduleOut",
+        "type": "object"
+      },
       "ScorecardRow": {
         "properties": {
           "goal": {
@@ -3589,6 +3728,83 @@
           "rag"
         ],
         "title": "ScorecardRow",
+        "type": "object"
+      },
+      "SendOut": {
+        "properties": {
+          "delivery_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Status"
+          },
+          "due_on": {
+            "format": "date",
+            "title": "Due On",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "review_required": {
+            "title": "Review Required",
+            "type": "boolean"
+          },
+          "sent_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "step_no": {
+            "title": "Step No",
+            "type": "integer"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "suppressed_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suppressed Reason"
+          }
+        },
+        "required": [
+          "id",
+          "step_no",
+          "due_on",
+          "status",
+          "subject",
+          "review_required",
+          "suppressed_reason",
+          "sent_at",
+          "delivery_status"
+        ],
+        "title": "SendOut",
         "type": "object"
       },
       "SimulateRequest": {
@@ -3743,6 +3959,44 @@
           "avg_cycle_days"
         ],
         "title": "SuggestionOut",
+        "type": "object"
+      },
+      "SweepOut": {
+        "properties": {
+          "cancelled": {
+            "title": "Cancelled",
+            "type": "integer"
+          },
+          "escalated": {
+            "title": "Escalated",
+            "type": "integer"
+          },
+          "exhausted": {
+            "title": "Exhausted",
+            "type": "integer"
+          },
+          "queued": {
+            "title": "Queued",
+            "type": "integer"
+          },
+          "superseded": {
+            "title": "Superseded",
+            "type": "integer"
+          },
+          "suppressed": {
+            "title": "Suppressed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "queued",
+          "suppressed",
+          "superseded",
+          "exhausted",
+          "escalated",
+          "cancelled"
+        ],
+        "title": "SweepOut",
         "type": "object"
       },
       "TodoScoreOut": {
@@ -4057,6 +4311,81 @@
         "title": "WatcherRunOut",
         "type": "object"
       },
+      "app__routes__capacity__EscalationOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "escalated_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalated To"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved": {
+            "title": "Resolved",
+            "type": "boolean"
+          },
+          "work_item_id": {
+            "format": "uuid",
+            "title": "Work Item Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "work_item_id",
+          "escalated_to",
+          "reason",
+          "due_date",
+          "created_at",
+          "resolved"
+        ],
+        "title": "EscalationOut",
+        "type": "object"
+      },
+      "app__routes__drafting__DecisionIn": {
+        "properties": {
+          "approve": {
+            "title": "Approve",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "approve"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
       "app__routes__drafting__DecisionOut": {
         "properties": {
           "id": {
@@ -4106,6 +4435,84 @@
           "outcome"
         ],
         "title": "DecisionOut",
+        "type": "object"
+      },
+      "app__routes__reminders__DecisionIn": {
+        "properties": {
+          "decision": {
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "DecisionIn",
+        "type": "object"
+      },
+      "app__routes__reminders__EscalationOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "escalated_to": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escalated To"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ladder_name": {
+            "title": "Ladder Name",
+            "type": "string"
+          },
+          "matter_reference": {
+            "title": "Matter Reference",
+            "type": "string"
+          },
+          "rights_preserving": {
+            "title": "Rights Preserving",
+            "type": "boolean"
+          },
+          "schedule_id": {
+            "format": "uuid",
+            "title": "Schedule Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "schedule_id",
+          "escalated_to",
+          "created_at",
+          "matter_reference",
+          "rights_preserving",
+          "ladder_name"
+        ],
+        "title": "EscalationOut",
         "type": "object"
       }
     }
@@ -4899,7 +5306,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/EscalationOut"
+                    "$ref": "#/components/schemas/app__routes__capacity__EscalationOut"
                   },
                   "title": "Response List Escalations Api V1 Capacity Escalations Get",
                   "type": "array"
@@ -5920,7 +6327,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DecisionIn"
+                "$ref": "#/components/schemas/app__routes__drafting__DecisionIn"
               }
             }
           },
@@ -7439,6 +7846,344 @@
         "summary": "Launch Adhoc",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/v1/reminders/escalations": {
+      "get": {
+        "description": "Exhausted ladders awaiting an explicit decision \u2014 rights-preserving ones first.",
+        "operationId": "escalations_api_v1_reminders_escalations_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/app__routes__reminders__EscalationOut"
+                  },
+                  "title": "Response Escalations Api V1 Reminders Escalations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Escalations",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/escalations/{escalation_id}/decide": {
+      "post": {
+        "operationId": "decide_api_v1_reminders_escalations__escalation_id__decide_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__routes__reminders__DecisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Decide",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/ladders": {
+      "get": {
+        "operationId": "list_ladders_api_v1_reminders_ladders_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LadderOut"
+                  },
+                  "title": "Response List Ladders Api V1 Reminders Ladders Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Ladders",
+        "tags": [
+          "reminders"
+        ]
+      },
+      "post": {
+        "description": "Define a ladder. Admin-gated by RLS, and shape-validated before anything is stored.",
+        "operationId": "create_ladder_api_v1_reminders_ladders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LadderIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LadderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Ladder",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/schedules": {
+      "get": {
+        "description": "Live and historical ladders, optionally for one matter. RLS hides the rest.",
+        "operationId": "list_schedules_api_v1_reminders_schedules_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "matter_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Matter Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleOut"
+                  },
+                  "title": "Response List Schedules Api V1 Reminders Schedules Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Schedules",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/schedules/{schedule_id}/halt": {
+      "post": {
+        "description": "Log that an instruction arrived. The manual counterpart to A8's reply detection.",
+        "operationId": "halt_api_v1_reminders_schedules__schedule_id__halt_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "schedule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Schedule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HaltIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Halt",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/schedules/{schedule_id}/sends": {
+      "get": {
+        "description": "Every rung of one ladder, including the ones withheld and why.",
+        "operationId": "list_sends_api_v1_reminders_schedules__schedule_id__sends_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "schedule_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Schedule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SendOut"
+                  },
+                  "title": "Response List Sends Api V1 Reminders Schedules  Schedule Id  Sends Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Sends",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/reminders/sweep": {
+      "post": {
+        "description": "Advance every visible active schedule one tick. Idempotent; `as_of` is for dry-running.",
+        "operationId": "sweep_api_v1_reminders_sweep_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SweepOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Sweep",
+        "tags": [
+          "reminders"
         ]
       }
     },
